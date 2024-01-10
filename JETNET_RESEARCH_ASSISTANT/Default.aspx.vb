@@ -1083,7 +1083,7 @@ Partial Public Class _Default
             Insert_Query1 &= ", 'TN03'"  'acct rep
             Insert_Query1 &= ", '" & Date.Now & "'"  'entry date
             Insert_Query1 &= ", ''"  'update date
-            Insert_Query1 &= ", '" & Trim(acpub_original_name) & "'"  'original desc
+            Insert_Query1 &= ", '" & Replace(Trim(acpub_original_name), "'", "") & "'"  'original desc
             Insert_Query1 &= ", ''"  'latest change
             Insert_Query1 &= ", 'mvit'"  'user id  
             Insert_Query1 &= ", 'Aircraft'"  'type 
@@ -1091,7 +1091,7 @@ Partial Public Class _Default
 
             Insert_Query1 &= ", ''"
 
-            Insert_Query1 &= ", '" & temp_party_first & "','Doc Request'"
+            Insert_Query1 &= ", '" & Replace(temp_party_first, "'", "") & "','Doc Request'"
 
             Insert_Query1 &= ")"
 
