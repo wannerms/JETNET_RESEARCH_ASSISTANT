@@ -1,6 +1,5 @@
-﻿Imports System.Net.Mail
+﻿Imports System.IO
 Imports System.Windows.Forms
-Imports System.IO
 
 Partial Public Class _Default
   Inherits System.Web.UI.Page
@@ -136,6 +135,9 @@ Partial Public Class _Default
     Dim non_zero_Count As Integer = 0
     Dim pub_city As String = ""
 
+    Dim pub_address As String = ""
+    Dim pub_zip As String = ""
+
     Dim xlApp As Microsoft.Office.Interop.Excel.Application
     Dim xlBook As Microsoft.Office.Interop.Excel.Workbook
     'Dim xlBook_temp As Microsoft.Office.Interop.Excel.Workbook
@@ -179,6 +181,8 @@ Partial Public Class _Default
             '  End If
 
             text_label.Text = ""
+
+
 
             If Trim(Request("ae")) <> "" Then
                 'Call Scrape_Aircraft_Exchange("https://aircraftexchange.com/jet-aircraft-for-sale/details/785/2013-dassault-falcon-900lx", 0)
@@ -260,8 +264,9 @@ Partial Public Class _Default
                 ElseIf Trim(Request("ac_pub")) = "Y" Then
                     Call get_ac_pub_top_function()
                 ElseIf Trim(Request("ac_pub_controller")) = "Y" Then
+                    ' Call scrape_controller_html()
 
-                    Call scrape_controller_html()
+                    Call scrape_controller_html_new()
 
                 ElseIf Trim(Request("data_integrity")) = "Y" Then
                     Call RUN_DATA_INTEGRITY_CHECKS()
@@ -530,120 +535,128 @@ Partial Public Class _Default
 
 
 
-        Dim xRng As Microsoft.Office.Interop.Excel.Range
-        Dim val As Object
-
-        ' no line 0 , and line 1 is columns 
-        For temp_line = 2 To 10000
-            'temp_String = xlSheet.Cells(temp_line, 1).value()
-            temp_String = temp_String
-
-            ' COLUMN 1 is N-NUMBER
-            xRng = CType(xlSheet.Cells(temp_line, 1), Microsoft.Office.Interop.Excel.Range)
-            val = xRng.Value()
-            If Not IsNothing(val) Then
-                temp_String = val.ToString
-            Else
-                temp_String = ""
-            End If
-            pub_reg_no = temp_String
-            pub_reg_no = Replace(pub_reg_no, """", "")
+        Try
 
 
-            ' SERIAL NUMBER
-            xRng = CType(xlSheet.Cells(temp_line, 2), Microsoft.Office.Interop.Excel.Range)
-            val = xRng.Value()
-            If Not IsNothing(val) Then
-                temp_serial = val.ToString
-            Else
-                temp_serial = ""
-            End If
-            pub_ser_no = temp_serial
-            pub_ser_no = Replace(pub_ser_no, """", "")
+            Dim xRng As Microsoft.Office.Interop.Excel.Range
+            Dim val As Object
 
-            If Trim(temp_String) = "" And Trim(temp_serial) = "" Then
-                temp_line = 10001
-            Else
+            ' no line 0 , and line 1 is columns 
+            For temp_line = 2 To 10000
+                'temp_String = xlSheet.Cells(temp_line, 1).value()
+                temp_String = temp_String
 
-                ' MFR
-                xRng = CType(xlSheet.Cells(temp_line, 36), Microsoft.Office.Interop.Excel.Range)
+                ' COLUMN 1 is N-NUMBER
+                xRng = CType(xlSheet.Cells(temp_line, 1), Microsoft.Office.Interop.Excel.Range)
                 val = xRng.Value()
-                temp_make = val.ToString
+                If Not IsNothing(val) Then
+                    temp_String = val.ToString
+                Else
+                    temp_String = ""
+                End If
+                pub_reg_no = temp_String
+                pub_reg_no = Replace(pub_reg_no, """", "")
 
-                ' Model
-                xRng = CType(xlSheet.Cells(temp_line, 37), Microsoft.Office.Interop.Excel.Range)
+
+                ' SERIAL NUMBER
+                xRng = CType(xlSheet.Cells(temp_line, 2), Microsoft.Office.Interop.Excel.Range)
                 val = xRng.Value()
-                temp_model = val.ToString
+                If Not IsNothing(val) Then
+                    temp_serial = val.ToString
+                Else
+                    temp_serial = ""
+                End If
+                pub_ser_no = temp_serial
+                pub_ser_no = Replace(pub_ser_no, """", "")
 
+                If Trim(temp_String) = "" And Trim(temp_serial) = "" Then
+                    temp_line = 10001
+                Else
 
-                ' DR DATE 
-                xRng = CType(xlSheet.Cells(temp_line, 42), Microsoft.Office.Interop.Excel.Range)
-                val = xRng.Value()
-                temp_Date1 = val.ToString
-
-                ' country
-                xRng = CType(xlSheet.Cells(temp_line, 15), Microsoft.Office.Interop.Excel.Range)
-                If Not IsNothing(xRng.Value()) Then
+                    ' MFR
+                    xRng = CType(xlSheet.Cells(temp_line, 36), Microsoft.Office.Interop.Excel.Range)
                     val = xRng.Value()
-                    temp_Country = val.ToString
-                Else
-                    temp_Country = ""
-                End If
+                    temp_make = val.ToString
+
+                    ' Model
+                    xRng = CType(xlSheet.Cells(temp_line, 37), Microsoft.Office.Interop.Excel.Range)
+                    val = xRng.Value()
+                    temp_model = val.ToString
+
+
+                    ' DR DATE 
+                    xRng = CType(xlSheet.Cells(temp_line, 42), Microsoft.Office.Interop.Excel.Range)
+                    val = xRng.Value()
+                    temp_Date1 = val.ToString
+
+                    ' country
+                    xRng = CType(xlSheet.Cells(temp_line, 15), Microsoft.Office.Interop.Excel.Range)
+                    If Not IsNothing(xRng.Value()) Then
+                        val = xRng.Value()
+                        temp_Country = val.ToString
+                    Else
+                        temp_Country = ""
+                    End If
 
 
 
-                ' Party
-                xRng = CType(xlSheet.Cells(temp_line, 40), Microsoft.Office.Interop.Excel.Range)
-                val = xRng.Value()
-                temp_party = val.ToString
-                temp_party_first = temp_party
-                If Trim(temp_party_All) <> "" Then
-                    temp_party_All &= ", "
-                End If
-                temp_party_All &= temp_party
+                    ' Party
+                    xRng = CType(xlSheet.Cells(temp_line, 40), Microsoft.Office.Interop.Excel.Range)
+                    val = xRng.Value()
+                    temp_party = val.ToString
+                    temp_party_first = temp_party
+                    If Trim(temp_party_All) <> "" Then
+                        temp_party_All &= ", "
+                    End If
+                    temp_party_All &= temp_party
 
 
-                Insert_Record = False
-                ' if we have changed serial number, or doc date, then 
-                'If (Trim(temp_serial) <> Trim(last_serial)) And Trim(last_serial) <> "" Then
-                '    Response.Write("<br/>-----------------Serial Changed")
-                '    Response.Write("<br/>LAST SERIAL: " & last_serial)
-                '    Response.Write("<br/>PARTY: " & temp_party_All)
-                '    Insert_Record = True
-                'ElseIf (Trim(temp_Date) <> Trim(last_date)) And Trim(last_date) <> "" Then
-                '    Response.Write("<br/>-----------------Date Changed")
-                '    Response.Write("<br/>LAST SERIAL: " & last_serial)
-                '    Response.Write("<br/>PARTY: " & temp_party_All)
-                '    Insert_Record = True
-                'Else
-
-                'End If
-
-                ' if neither has changed, then dont enter 
-                If (Trim(temp_serial) = Trim(last_serial)) And (Trim(temp_Date1) = Trim(last_date)) Then
                     Insert_Record = False
-                Else
-                    Insert_Record = True
+                    ' if we have changed serial number, or doc date, then 
+                    'If (Trim(temp_serial) <> Trim(last_serial)) And Trim(last_serial) <> "" Then
+                    '    Response.Write("<br/>-----------------Serial Changed")
+                    '    Response.Write("<br/>LAST SERIAL: " & last_serial)
+                    '    Response.Write("<br/>PARTY: " & temp_party_All)
+                    '    Insert_Record = True
+                    'ElseIf (Trim(temp_Date) <> Trim(last_date)) And Trim(last_date) <> "" Then
+                    '    Response.Write("<br/>-----------------Date Changed")
+                    '    Response.Write("<br/>LAST SERIAL: " & last_serial)
+                    '    Response.Write("<br/>PARTY: " & temp_party_All)
+                    '    Insert_Record = True
+                    'Else
+
+                    'End If
+
+                    ' if neither has changed, then dont enter 
+                    If (Trim(temp_serial) = Trim(last_serial)) And (Trim(temp_Date1) = Trim(last_date)) Then
+                        Insert_Record = False
+                    Else
+                        Insert_Record = True
+                    End If
+
+                    If Insert_Record = True Then
+                        Call CREATE_INSERT_FUNCTION()
+                        temp_party_All = ""
+                    End If
+
+
+
+                    last_party = temp_party_first
+                    last_reg = pub_reg_no
+
+                    last_serial = temp_serial
+                    last_date = temp_Date1
                 End If
 
-                If Insert_Record = True Then
-                    Call CREATE_INSERT_FUNCTION()
-                    temp_party_All = ""
-                End If
+
+                '	S	MFR MDL CODE	ENG MFR MDL	YEAR MFR	TYPE REGISTRANT	NAME	STREET	STREET2	CITY	STATE	ZIP CODE	REGION	COUNTY	COUNTRY	LAST ACTION DATE	CERT ISSUE DATE	CERTIFICATION	TYPE AIRCRAFT	TYPE ENGINE	STATUS CODE	MODE S CODE	FRACT OWNER	AIR WORTH DATE	OTHER NAMES(1)	OTHER NAMES(2)	OTHER NAMES(3)	OTHER NAMES(4)	OTHER NAMES(5)	EXPIRATION DATE	UNIQUE ID	KIT MFR	 KIT MODEL	MODE S CODE HEX	CODE	MFR	MODEL	TYPE-COLLATERAL	COLLATERAL	PARTY	DOC-ID	DRDATE	PROCESSING-DATE	CORR-DATE	CORR-ID	SERIAL-ID
+
+            Next
 
 
+        Catch ex As Exception
 
-                last_party = temp_party_first
-                last_reg = pub_reg_no
-
-                last_serial = temp_serial
-                last_date = temp_Date1
-            End If
-
-
-            '	S	MFR MDL CODE	ENG MFR MDL	YEAR MFR	TYPE REGISTRANT	NAME	STREET	STREET2	CITY	STATE	ZIP CODE	REGION	COUNTY	COUNTRY	LAST ACTION DATE	CERT ISSUE DATE	CERTIFICATION	TYPE AIRCRAFT	TYPE ENGINE	STATUS CODE	MODE S CODE	FRACT OWNER	AIR WORTH DATE	OTHER NAMES(1)	OTHER NAMES(2)	OTHER NAMES(3)	OTHER NAMES(4)	OTHER NAMES(5)	EXPIRATION DATE	UNIQUE ID	KIT MFR	 KIT MODEL	MODE S CODE HEX	CODE	MFR	MODEL	TYPE-COLLATERAL	COLLATERAL	PARTY	DOC-ID	DRDATE	PROCESSING-DATE	CORR-DATE	CORR-ID	SERIAL-ID
-
-        Next
+        End Try
 
         '' then we had data 
         'If Trim(last_serial) <> "" Then
@@ -668,6 +681,8 @@ Partial Public Class _Default
         Dim temp_serial As String = ""
         Dim last_serial As String = ""
         Dim last_date As String = ""
+
+
 
 
         Dim ac_id As Long = 0
@@ -705,11 +720,10 @@ Partial Public Class _Default
             Insert_Query_Start &= " VALUES( "
 
 
-
             Try
 
                 MySqlConn_JETNET.ConnectionString = Inhouse_Live_Connection
-                '  MySqlConn_JETNET.ConnectionString = Inhouse_Test_Connection
+                '   MySqlConn_JETNET.ConnectionString = Inhouse_Test_Connection
                 ' MySqlConn_JETNET.ConnectionString = JETNET_LIVE_SQL_CONN
                 MySqlConn_JETNET.Open()
                 MySqlCommand_JETNET.Connection = MySqlConn_JETNET
@@ -766,6 +780,22 @@ Partial Public Class _Default
                 pub_reg_no = Replace(pub_reg_no, """", "")
 
 
+                If Trim(pub_reg_no) = "176HS" Then
+                    pub_reg_no = pub_reg_no
+                End If
+
+
+                If Trim(pub_reg_no) = "318KS" Then
+                    pub_reg_no = pub_reg_no
+                End If
+
+                If Trim(pub_reg_no) = "32NX" Then
+                    pub_reg_no = pub_reg_no
+                End If
+
+
+
+
 
                 xRng = CType(xlSheet.Cells(temp_line, 2), Microsoft.Office.Interop.Excel.Range)
                 val = xRng.Value()
@@ -776,6 +806,8 @@ Partial Public Class _Default
                 End If
                 pub_ser_no = temp_serial
                 pub_ser_no = Replace(pub_ser_no, """", "")
+
+
 
                 temp_party_first = ""
                 xRng = CType(xlSheet.Cells(temp_line, 7), Microsoft.Office.Interop.Excel.Range)
@@ -827,6 +859,57 @@ Partial Public Class _Default
                 pub_reg_no_doc_pending = temp_String
                 pub_reg_no_doc_pending = Replace(pub_reg_no_doc_pending, """", "")
 
+
+                xRng = CType(xlSheet.Cells(temp_line, 40), Microsoft.Office.Interop.Excel.Range)
+                val = xRng.Value()
+                If Not IsNothing(val) Then
+                    pub_address = val.ToString
+                Else
+                    pub_address = ""
+                End If
+
+
+                xRng = CType(xlSheet.Cells(temp_line, 42), Microsoft.Office.Interop.Excel.Range)
+                val = xRng.Value()
+                If Not IsNothing(val) Then
+                    pub_city = val.ToString
+                Else
+                    pub_city = ""
+                End If
+
+
+                xRng = CType(xlSheet.Cells(temp_line, 44), Microsoft.Office.Interop.Excel.Range)
+                val = xRng.Value()
+                If Not IsNothing(val) Then
+                    pub_zip = val.ToString
+                Else
+                    pub_zip = ""
+                End If
+
+
+
+
+
+                xRng = CType(xlSheet.Cells(temp_line, 45), Microsoft.Office.Interop.Excel.Range)
+                val = xRng.Value()
+                If Not IsNothing(val) Then
+                    temp_String = val.ToString
+                Else
+                    temp_String = ""
+                End If
+                temp_Date1 = temp_String
+                temp_Date1 = Replace(temp_Date1, """", "")
+
+                '20230211  format for the date 
+                If Len(Trim(temp_Date1)) = 8 Then
+                    temp_Date1 = Right(Left(Trim(temp_Date1), 6), 2) & "/" & Right(Trim(temp_Date1), 2) & "/" & Left(Trim(temp_Date1), 4)
+                End If
+
+
+
+
+
+
                 acpub_original_name = "Reserved Doc Reg: " & pub_reg_no & "/" & pub_reg_no_doc_pending & " Serno: " & pub_ser_no
 
                 ' add N if its not there to all US aircraft 
@@ -840,21 +923,76 @@ Partial Public Class _Default
                 End If
 
 
+
+                If Trim(pub_reg_no_doc_pending) = "229BC" Or Trim(pub_reg_no_doc_pending) = "229BC" Or Trim(pub_reg_no_doc_pending) = "229BC" Or Trim(pub_reg_no_doc_pending) = "229BC" Or Trim(pub_reg_no_doc_pending) = "229BC" Or Trim(pub_reg_no_doc_pending) = "229BC" Then
+                    pub_reg_no = pub_reg_no
+                End If
+
+
+
+
+
                 ' if the reg docs r different, then we may need to change 
                 pub_insert = False
                 If Trim(pub_reg_no) <> Trim(pub_reg_no_doc_pending) Then
 
+                    pub_desc = ""
+                    acpub_original_name = "Pending REG – (" & pub_reg_no_doc_pending & "), Date: " & temp_Date1  ' title 
+
+
                     temp_ac_id = 0
-                    Call FIND_AC_ID_RESERVED(pub_reg_no_doc_pending)   ' see if it matches the AL column - DOC GOING TO BE CHANGED TO HAS ALRREADY BEEN DONE BY RESEARCH 
+                    '1 . see if we have an ac with the current reg and serial number 
+                    temp_ac_id = find_ac_ac_search(pub_ser_no, temp_make, temp_model, pub_reg_no_doc_pending)
+
+                    If temp_ac_id = 0 Then
+                        temp_ac_id = find_ac_ac_search(pub_ser_no, "", temp_model, pub_reg_no_doc_pending)
+                    End If
+
+                    If temp_ac_id = 0 Then
+                        temp_ac_id = find_ac_ac_search(pub_ser_no, "", "", pub_reg_no_doc_pending)
+                    End If
+
+                    If temp_ac_id = 0 Then
+                        temp_ac_id = find_ac_ac_search("", "", "", pub_reg_no_doc_pending)
+                    End If
+
+
+
 
                     ' IF WE HAVENT ALREADY CHANGED IT 
                     If temp_ac_id = 0 Then
 
                         ' if we havent already done it. check to see if its with the old id 
-                        Call FIND_AC_ID_RESERVED(pub_reg_no)
+                        ' Call FIND_AC_ID_RESERVED(pub_reg_no)
+                        temp_ac_id = find_ac_ac_search(pub_ser_no, temp_make, temp_model, "")
 
-                        If temp_ac_id = 221269 Then
-                            temp_ac_id = temp_ac_id
+                        If temp_ac_id = 0 Then
+                            temp_ac_id = find_ac_ac_search(pub_ser_no, "", temp_model, "")
+                        End If
+
+                        If temp_ac_id = 0 Then
+                            temp_ac_id = find_ac_ac_search(pub_ser_no, "", "", "")
+                        End If
+
+                        If temp_ac_id = 0 Then
+                            temp_ac_id = find_ac_ac_search("", "", "", pub_reg_no)
+                        End If
+
+
+                        If temp_ac_id = 0 Then
+                            temp_ac_id = find_ac_global_search(pub_ser_no, temp_make, temp_model, "")
+                        End If
+
+                        If temp_ac_id = 0 Then
+                            temp_ac_id = find_ac_global_search(pub_ser_no, "", temp_model, "")
+                        End If
+
+                        If temp_ac_id = 0 Then
+                            temp_ac_id = find_ac_global_search(pub_ser_no, temp_make, "", "")
+                        End If
+
+                        If temp_ac_id = 0 Then
+                            temp_ac_id = find_ac_global_search(pub_ser_no, "", "", "")
                         End If
 
                         If find_Pending_Reg(pub_reg_no_doc_pending, temp_ac_id) = True Then ' SEE IF ITS ALREADY PENDING 
@@ -867,11 +1005,14 @@ Partial Public Class _Default
                         pub_insert = False
                     End If
 
+                    If temp_ac_id = 0 Then
+                        Response.Write("<Br><br/>ACID: " & temp_ac_id & " MAKE " & temp_make & " MODEL " & temp_model & " SERNO " & pub_ser_no & " REGNO " & pub_reg_no & " PENDING/NEW REGNO: " & pub_reg_no_doc_pending)
+                    End If
 
                     If pub_insert = True Then
-                            insert_doc_request_reserved()
-                        End If
+                        insert_doc_request_reserved()
                     End If
+                End If
 
 
 
@@ -976,6 +1117,8 @@ Partial Public Class _Default
             temp_String = temp_String
 
         Catch ex As Exception
+            Response.Write("<br/>ERROR: " & ex.ToString)
+            Response.Write("<br>Line: " & temp_line & ", Rego(col1)" & pub_reg_no)
         Finally
             MySqlConn_JETNET.Dispose()
         MySqlConn_JETNET.Close()
@@ -1095,6 +1238,8 @@ Partial Public Class _Default
 
             Insert_Query1 &= ")"
 
+            Response.Write("<br>" & Insert_Query1)
+
             MySqlCommand_JETNET.CommandText = Insert_Query1
             MySqlCommand_JETNET.ExecuteNonQuery()
             MySqlCommand_JETNET.Dispose()
@@ -1106,78 +1251,42 @@ Partial Public Class _Default
     Public Sub FIND_AC_ID_RESERVED(ByVal REAL_TEMP_REG As String)
         ' pub_ser_no = last_serial 
         acpub_status = "O"
-        pub_desc = ""
-        acpub_original_name = "Doc Index: Date: " & temp_Date1  ' title 
+
+
+        temp_make = Replace(Trim(temp_make), "LEARJET INC", "LEARJET")
+        temp_make = Replace(Trim(temp_make), "EMBRAER EXECUTIVE AIRCRAFT INC", "EMBRAER")
+        temp_make = Replace(Trim(temp_make), "BOMBARDIER INC", "BOMBARDIER")
+        temp_make = Replace(Trim(temp_make), "CIRRUS Design CORP", "CIRRUS")
+        temp_make = Replace(Trim(temp_make), "GULFSTREAM AEROSPACE", "GULFSTREAM")
+        temp_make = Replace(Trim(temp_make), "TEXTRON AVIATION INC", "TEXTRON")
+        temp_make = Replace(Trim(temp_make), "ROBINSON HELICOPTER", "ROBINSON")
 
 
 
-
-        temp_ac_id = find_ac_global_search(pub_ser_no, temp_make, temp_model, "")
+        temp_ac_id = find_ac_global_search(pub_ser_no, "", "", REAL_TEMP_REG)
         If temp_ac_id = 0 Then
-            temp_ac_id = find_ac_global_search(pub_ser_no, temp_make, "", "")
-            If temp_ac_id = 0 Then
-                temp_ac_id = find_ac_global_search(pub_ser_no, "", temp_model, "")
+            If Trim(REAL_TEMP_REG) <> "" Then
+                temp_ac_id = find_ac_global_search("", "", "", REAL_TEMP_REG)
                 If temp_ac_id = 0 Then
-                    temp_ac_id = find_ac_global_search(pub_ser_no, "", "", REAL_TEMP_REG)
+                    ' one last try 
+                    temp_ac_id = find_ac_global_search("", temp_make, temp_model, REAL_TEMP_REG)
                     If temp_ac_id = 0 Then
-                        temp_ac_id = find_ac_global_search(pub_ser_no, "", "", "")
-                        If temp_ac_id = 0 Then
-                            If Trim(REAL_TEMP_REG) <> "" Then
-                                temp_ac_id = find_ac_global_search("", "", "", REAL_TEMP_REG)
-                                If temp_ac_id = 0 Then
-                                    ' one last try 
-                                    temp_ac_id = find_ac_global_search("", temp_make, temp_model, REAL_TEMP_REG)
-                                    If temp_ac_id = 0 Then
-                                        temp_ac_id = temp_ac_id
-                                    End If
-                                End If
-                            End If
-
-
-                            If temp_ac_id = 0 Then
-                                If Trim(pub_ser_no) <> "" Then
-                                    temp_ac_id = find_ac_ac_search(pub_ser_no, temp_make, temp_model, "")
-                                End If
-
-                                If temp_ac_id = 0 Then
-                                    If Trim(REAL_TEMP_REG) <> "" Then
-                                        temp_ac_id = find_ac_ac_search("", temp_make, temp_model, REAL_TEMP_REG)
-                                    End If
-
-                                    If temp_ac_id = 0 Then
-                                        If Trim(pub_ser_no) <> "" And Left(Trim(pub_ser_no), 1) = "0" Then
-                                            temp_ac_id = find_ac_ac_search(Right(Trim(pub_ser_no), Len(Trim(pub_ser_no)) - 1), temp_make, temp_model, "")
-                                        End If
-                                    End If
-
-                                End If
-                            End If
-                            temp_ac_id = temp_ac_id
-
-
-
-                        End If
-
+                        temp_ac_id = temp_ac_id
                     End If
                 End If
             End If
-
         End If
 
-        If temp_ac_id = 0 Then
-            temp_ac_id = temp_ac_id
-        End If
 
 
     End Sub
 
     Public Sub insert_doc_request_reserved()
 
+        Dim temp_notes As String = ""
 
 
-        If CHECK_IF_DOC_REQUEST_EXISTS(acpub_original_name, temp_ac_id, temp_party_first) = False Then
-
-
+        If CHECK_IF_DOC_REQUEST_EXISTS_W_REG(temp_ac_id, pub_reg_no_doc_pending) = False Then
 
             Insert_Query1 = Insert_Query_Start
             Insert_Query1 &= " " & temp_ac_id & ""
@@ -1192,13 +1301,20 @@ Partial Public Class _Default
             Insert_Query1 &= ", '" & pub_aftt & "'"
             Insert_Query1 &= ", '" & Replace(pub_seller_info, "'", "") & "'"
             Insert_Query1 &= ", '" & pub_picture & "'"
-            Insert_Query1 &= ", '" & acpub_status & "'"
+
+            ' added MSW - 11/21/23 
+            If Trim(acpub_status) <> "" Then
+                Insert_Query1 &= ", '" & acpub_status & "'"
+            Else
+                Insert_Query1 &= ", 'O' "
+            End If
+
             Insert_Query1 &= ", '" & pub_url & "'"
             Insert_Query1 &= ", ''"  'clear date
             Insert_Query1 &= ", 'TN03'"  'acct rep
             Insert_Query1 &= ", '" & Date.Now & "'"  'entry date
             Insert_Query1 &= ", ''"  'update date
-            Insert_Query1 &= ", '" & Trim(acpub_original_name) & "'"  'original desc
+            Insert_Query1 &= ", '" & Trim(Replace(acpub_original_name, "'", "")) & "'"  'original desc
             Insert_Query1 &= ", ''"  'latest change
             Insert_Query1 &= ", 'mvit'"  'user id  
             Insert_Query1 &= ", 'Aircraft'"  'type 
@@ -1206,21 +1322,38 @@ Partial Public Class _Default
 
             Insert_Query1 &= ", ''"
 
-            Insert_Query1 &= ", '" & temp_party_first & "','Doc Request'"
+            Insert_Query1 &= ", '" & Replace(temp_party_first, "'", "") & "','Doc Request'"
 
             Insert_Query1 &= ")"
-
 
             Insert_Query1 = Insert_Query1
 
             '  Response.Write("<Br>" & Insert_Query1)
 
-            Response.Write("<Br><br/>ACID: " & temp_ac_id & " SERNO " & pub_ser_no & " REGNO " & pub_reg_no & " PENDING/NEW REGNO: " & pub_reg_no_doc_pending)
+            Response.Write("<Br><br/>DOC REQUEST ADDED - ACID: " & temp_ac_id & " SERNO " & pub_ser_no & " REGNO " & pub_reg_no & " PENDING/NEW REGNO: " & pub_reg_no_doc_pending)
 
-            '  MySqlCommand_JETNET.CommandText = Insert_Query1
-            '   MySqlCommand_JETNET.ExecuteNonQuery()
-            '  MySqlCommand_JETNET.Dispose()
+            MySqlCommand_JETNET.CommandText = Insert_Query1
+            MySqlCommand_JETNET.ExecuteNonQuery()
+            MySqlCommand_JETNET.Dispose()
 
+            temp_notes = "<br/>RSV DATE -> " & temp_Date1 & ", STREET: " & pub_address & ", CITY: " & pub_city & ", ZIP CODE: " & pub_zip
+            Response.Write(temp_notes)
+
+            Insert_Query1 = ""
+            Insert_Query1 = " insert into Aircraft_FAA_Document (acfaa_ac_id, acfaa_journ_id, acfaa_doc_date, acfaa_party_comp_name1, acfaa_reg_no1, acfaa_notes) VALUES ( "
+            Insert_Query1 &= temp_ac_id & ", "
+            Insert_Query1 &= "0, "
+            Insert_Query1 &= "'" & temp_Date1 & "', "
+            Insert_Query1 &= "'" & Replace(temp_party_first, "'", "") & "', "
+            Insert_Query1 &= "'" & Replace(pub_reg_no_doc_pending, "'", "") & "',"
+            Insert_Query1 &= "'" & Replace(temp_notes, "'", "") & "')"
+
+            MySqlCommand_JETNET.CommandText = Insert_Query1
+            MySqlCommand_JETNET.ExecuteNonQuery()
+            MySqlCommand_JETNET.Dispose()
+
+        Else
+            Insert_Query1 = Insert_Query1
         End If
 
 
@@ -1267,6 +1400,63 @@ Partial Public Class _Default
                 For Each r As DataRow In atemptable.Rows
                     ' pub_yacht_id = r.Item("publist_ac_id")
                     CHECK_IF_DOC_REQUEST_EXISTS = True
+                Next
+            End If
+
+        Catch ex As Exception
+            Return Nothing
+            '  aError = "Error in Get_CRM_VIEW_Prospects()" + ex.Message
+        Finally
+            SqlReader = Nothing
+
+            SqlConn.Dispose()
+            SqlConn.Close()
+            SqlConn = Nothing
+
+            SqlCommand.Dispose()
+            SqlCommand = Nothing
+        End Try
+
+
+    End Function
+
+    Public Function CHECK_IF_DOC_REQUEST_EXISTS_W_REG(ByVal ac_id As Long, ByVal reg_no As String) As Boolean
+        CHECK_IF_DOC_REQUEST_EXISTS_W_REG = False
+        Dim atemptable As New DataTable
+
+        Dim SqlConn As New SqlClient.SqlConnection
+        Dim SqlCommand As New SqlClient.SqlCommand
+        Dim SqlReader As SqlClient.SqlDataReader
+        Dim Query As String = ""
+        Dim original_found As Integer = 0
+
+
+        Try
+
+            SqlConn.ConnectionString = MySqlConn_JETNET.ConnectionString
+            SqlConn.Open()
+            SqlCommand.Connection = SqlConn
+            SqlCommand.CommandType = CommandType.Text
+            SqlCommand.CommandTimeout = 60
+
+
+            Query = "select * from Publication_Listing with (NOLOCK) where publist_ac_id = '" & ac_id & "'   "
+            Query &= "  and publist_Category = 'Doc Request' and publist_research_note like '%" & reg_no & "%' and publist_status in ('O','H') "  ' open or hold  
+
+            SqlCommand.CommandText = Query.ToString
+            SqlReader = SqlCommand.ExecuteReader(CommandBehavior.CloseConnection)
+
+            Try
+                atemptable.Load(SqlReader)
+            Catch constrExc As System.Data.ConstraintException
+                Dim rowsErr As System.Data.DataRow() = atemptable.GetErrors()
+                ' aError = "Error in Get_CRM_VIEW_Prospects load datatable" + constrExc.Message
+            End Try
+
+            If atemptable.Rows.Count > 0 Then
+                For Each r As DataRow In atemptable.Rows
+                    ' pub_yacht_id = r.Item("publist_ac_id")
+                    CHECK_IF_DOC_REQUEST_EXISTS_W_REG = True
                 Next
             End If
 
@@ -1818,8 +2008,10 @@ Partial Public Class _Default
                 Response.Flush()
                 Response.Flush()
                 System.Threading.Thread.Sleep(10)
-                Call scrape_for_TradeAPlane(0)
-                Call scrape_for_TradeAPlane(2)
+                'Call scrape_for_TradeAPlane(0)
+                'Call scrape_for_TradeAPlane(2)
+                ' 3 source 
+                Call scrape_for_Trade_A_Plane_Scraper(0)
 
                 'skip_this = "Y"
                 'If skip_this = "Y" Then
@@ -1922,6 +2114,10 @@ Partial Public Class _Default
 
 
             Call insert_into_eventlog("AC_Exchange Finished", "Research Assistant")
+
+
+
+
 
 
 
@@ -4754,7 +4950,19 @@ Partial Public Class _Default
                             pub_url = Left(Trim(string_text), spot_to_find - 2)
                             pub_url = Replace(pub_url, """", "")
 
-                            pub_url = "https://www.controller.com/" & pub_url
+
+                            If InStr(pub_url, "controller.com") > 0 Then
+                                pub_url = pub_url
+
+                                If Left(Trim(pub_url), 4) = "ttps" Then
+                                    pub_url = "h" & pub_url  ' then --- rather then change code .. add the h in 
+                                End If
+
+                            Else
+                                pub_url = "https://www.controller.com/" & pub_url
+                            End If
+
+
                             pub_url = RTrim(LTrim(pub_url))
 
                             string_text = Right(string_text, Len(string_text) - spot_to_find)
@@ -8984,7 +9192,7 @@ Partial Public Class _Default
 
             tcount = tcount + 1  ' do every third one 
 
-            results_table = find_scraped_aircraft()
+            results_table = find_scraped_aircraft("AVBuyer")
 
             If Not IsNothing(results_table) Then
                 If results_table.Rows.Count > 0 Then
@@ -9051,6 +9259,15 @@ Partial Public Class _Default
                         If Not IsDBNull(r.Item("scrp_ac_dealer")) Then
                             pub_seller_info = Trim(r.Item("scrp_ac_dealer"))
                         End If
+
+                        If Not IsDBNull(r.Item("scrp_ac_year")) Then
+                            temp_year = Trim(r.Item("scrp_ac_year"))
+                        ElseIf Trim(temp_ac_name) <> "" And Len(Trim(temp_ac_name)) > 5 Then
+                            If IsNumeric(Left(Trim(temp_ac_name), 4)) = True Then
+                                temp_year = Left(Trim(temp_ac_name), 4) ' then steal the year from the title 
+                            End If
+                        End If
+
 
                         If Not IsDBNull(r.Item("scrp_ac_year")) Then
                             temp_year = Trim(r.Item("scrp_ac_year"))
@@ -9211,6 +9428,981 @@ Partial Public Class _Default
         End Try
 
     End Function
+
+    Public Function scrape_for_Trade_A_Plane_Scraper(ByVal page_num As Long)
+
+
+        Dim string_text As String = ""
+        Dim string_text2 As String = ""
+        Dim i As Integer = 0
+        Dim final_string As String = ""
+        Dim original_string_text As String = ""
+        Dim article_link As String = ""
+        Dim spot_to_find As Integer = 0
+        Dim spot_to_find2 As Integer = 0
+        Dim spot_to_find3 As Integer = 0
+        Dim k As Integer = 0
+        Dim skip_this As Boolean = False
+        Dim extra_note As String = ""
+
+        Dim temp_ac_name As String = ""
+        Dim temp_engine As String = ""
+        Dim temp_eng As String = ""
+        Dim temp_av As String = ""
+        Dim temp_ac_id As Long = 0
+        Dim temp_make As String = ""
+        Dim temp_temp As String
+        Dim temp_model As String = ""
+        Dim temp_year As String = ""
+        Dim array_split_make() As String
+        Dim tcount As Integer = 0
+        Dim results_table As New DataTable
+        Dim temp_pub_id As Long = 0
+        Dim Update_Query As String = ""
+
+
+
+        Try
+
+
+            System.Threading.Thread.Sleep(10)
+            Response.Flush()
+            System.Threading.Thread.Sleep(10)
+
+
+
+            tcount = tcount + 1  ' do every third one 
+
+            results_table = find_scraped_aircraft("Trade-A-Plane")
+
+            If Not IsNothing(results_table) Then
+                If results_table.Rows.Count > 0 Then
+                    For Each r As DataRow In results_table.Rows
+
+
+                        acpub_count = acpub_count + 1
+
+                        temp_ac_id = 0
+                        temp_ac_name = ""
+                        temp_engine = ""
+                        temp_eng = ""
+                        temp_av = ""
+
+                        pub_reg_no = ""
+                        pub_ser_no = ""
+                        pub_desc = ""
+                        pub_price = ""
+                        pub_aftt = ""
+                        pub_seller_info = ""
+                        pub_picture = ""
+                        pub_status = ""
+                        pub_url = ""
+                        has_pics = False
+                        aftt_different = ""
+                        temp_year = ""
+                        temp_make = ""
+                        temp_model = ""
+                        pub_comp_id = 0
+                        temp_pub_id = 0
+                        Update_Query = ""
+
+
+                        ' scrp_ac_id, scrp_ac_source, scrp_ac_model, scrp_ac_asking_price , scrp_ac_detail_link, "
+                        '     select_query &= " scrp_ac_location , scrp_ac_dealer, scrp_ac_year, scrp_ac_ser_no , scrp_ac_airframe_tot_hrs , scrp_ac_note
+
+
+
+                        If Not IsDBNull(r.Item("scrp_ac_id")) Then
+                            temp_pub_id = Trim(r.Item("scrp_ac_id"))
+                        End If
+
+                        If Not IsDBNull(r.Item("scrp_ac_model")) Then
+                            temp_ac_name = Trim(r.Item("scrp_ac_model"))
+                        End If
+
+                        If Trim(temp_ac_name) <> "" Then
+
+
+                            If Not IsDBNull(r.Item("scrp_ac_reg_no")) Then
+                                pub_reg_no = Trim(r.Item("scrp_ac_reg_no"))
+                            End If
+
+
+                            If Not IsDBNull(r.Item("scrp_ac_asking_price")) Then
+                                pub_price = Trim(r.Item("scrp_ac_asking_price"))
+
+                                pub_price = Replace(pub_price, "Price: USD ", "")
+                                pub_price = Replace(pub_price, "Price Reduced", "")
+                                pub_price = Replace(pub_price, "Fractional Ownership", "")
+                                pub_price = Replace(pub_price, "Price: €", "")
+                            End If
+
+                            If Not IsDBNull(r.Item("scrp_ac_detail_link")) Then
+                                pub_url = Trim(r.Item("scrp_ac_detail_link"))
+                            End If
+
+                            'If Not IsDBNull(r.Item("scrp_ac_location")) Then
+                            '    temp_ac_name = Trim(r.Item("scrp_ac_location"))
+                            'End If
+
+                            If Not IsDBNull(r.Item("scrp_ac_dealer")) Then
+                                pub_seller_info = Trim(r.Item("scrp_ac_dealer"))
+                            End If
+
+                            If Not IsDBNull(r.Item("scrp_ac_year")) Then
+                                temp_year = Trim(r.Item("scrp_ac_year"))
+                            ElseIf Trim(temp_ac_name) <> "" And Len(Trim(temp_ac_name)) > 5 Then
+                                If IsNumeric(Left(Trim(temp_ac_name), 4)) = True Then
+                                    temp_year = Left(Trim(temp_ac_name), 4) ' then steal the year from the title 
+                                End If
+                            End If
+
+
+                            If Not IsDBNull(r.Item("scrp_ac_year")) Then
+                                temp_year = Trim(r.Item("scrp_ac_year"))
+                            End If
+
+                            If Not IsDBNull(r.Item("scrp_ac_ser_no")) Then
+                                pub_ser_no = Trim(r.Item("scrp_ac_ser_no"))
+                            End If
+
+                            If Not IsDBNull(r.Item("scrp_ac_airframe_tot_hrs")) Then
+                                pub_aftt = Trim(r.Item("scrp_ac_airframe_tot_hrs"))
+                            End If
+
+                            If Not IsDBNull(r.Item("scrp_ac_note")) Then
+                                pub_desc = Trim(r.Item("scrp_ac_note"))
+                            End If
+
+
+
+                            acpub_original_name = temp_ac_name & " " & pub_ser_no
+
+                            cutme(acpub_original_name)
+                            cutme(temp_ac_name)
+                            cutme(pub_price)
+                            cutme(pub_url)
+                            cutme(pub_seller_info)
+                            cutme(pub_desc)
+                            cutme(temp_year)
+                            cutme(pub_ser_no)
+                            cutme(pub_aftt)
+
+                            pub_aftt = Replace(pub_aftt, "Hours", "")
+
+
+                            Response.Write("<Br>")
+                            Response.Write("<Br>" & temp_ac_name)
+                            Response.Write("<Br>" & pub_price)
+                            Response.Write("<Br>" & pub_url)
+                            Response.Write("<Br>" & pub_seller_info)
+                            Response.Write("<Br>" & pub_desc)
+                            Response.Write("<Br>" & temp_year)
+                            Response.Write("<Br>" & pub_ser_no)
+                            Response.Write("<Br>" & pub_aftt)
+
+
+
+                            array_split_make = Split(Trim(temp_ac_name), " ")
+
+                            If array_split_make.Length = 2 Then
+                                temp_make = array_split_make(0)
+                                temp_model = array_split_make(1)
+                            ElseIf array_split_make.Length = 3 Then
+                                temp_make = array_split_make(1)
+                                temp_model = array_split_make(2)
+                            ElseIf array_split_make.Length = 4 Then
+                                temp_make = array_split_make(2)
+                                temp_model = array_split_make(3)
+                            ElseIf array_split_make.Length = 5 Then
+                                temp_make = array_split_make(3)
+                                temp_model = array_split_make(4)
+                            Else
+                                temp_temp = ""
+                            End If
+
+                            If InStr(Trim(pub_ser_no), "&dash;") > 0 Then
+                                pub_ser_no = ""
+                            End If
+
+                            temp_ac_id = find_ac_global_search(pub_ser_no, temp_make, temp_model, "")
+                            If temp_ac_id = 0 Then
+                                temp_ac_id = find_ac_global_search(pub_ser_no, "", temp_model, "")
+                                If temp_ac_id = 0 Then
+                                    temp_ac_id = find_ac_global_search(pub_ser_no, "", "", pub_reg_no)
+                                    If temp_ac_id = 0 Then
+
+                                        temp_ac_id = find_ac_global_search(pub_ser_no, "", "", "")
+                                        If temp_ac_id = 0 Then
+                                            temp_ac_id = find_ac_global_search("", "", "", pub_reg_no)
+                                            If temp_ac_id = 0 Then
+                                                temp_ac_id = temp_ac_id
+                                            End If
+                                        End If
+
+                                    End If
+                                End If
+
+                            End If
+
+
+
+                            If pub_comp_id = 0 Then
+                                If Not IsNothing(pub_seller_info) Then
+                                    If Trim(pub_seller_info) <> "" Then
+                                        'if there is a line feed or break, then try to get just the company name 
+                                        If InStr(Trim(pub_seller_info), Asc(10)) > 0 Then
+                                            pub_comp_id = find_comp_id_global_search(Left(Trim(pub_seller_info), InStr(Trim(pub_seller_info), Asc(10)) - 1))
+                                        ElseIf InStr(Trim(pub_seller_info), Asc(13)) > 0 Then
+                                            pub_comp_id = find_comp_id_global_search(Left(Trim(pub_seller_info), InStr(Trim(pub_seller_info), Asc(13)) - 1))
+                                        Else
+                                            pub_comp_id = find_comp_id_global_search(Left(Trim(pub_seller_info), 17))
+                                        End If
+                                    End If
+                                End If
+                            End If
+
+                            If pub_comp_id = 0 And Trim(pub_seller_info <> "") Then
+                                pub_comp_id = find_comp_id_previous_pub(pub_seller_info, 2)
+                            End If
+
+
+                            acpub_price_details = ""
+                            If On_Naughty_List(temp_ac_name) = True Then
+                                ' if its on naughtly list then excldue  
+                            Else
+                                If temp_ac_id > 0 Then
+                                    Call find_ac_data(temp_ac_id)
+                                Else
+                                    acpub_process_status = "For Sale Not Found – No AC Match"
+                                    acpub_status = "O"
+                                End If
+
+                                If Trim(aftt_different) <> "" Then
+                                    pub_desc = pub_desc & aftt_different
+                                End If
+
+                                If Trim(acpub_price_details) <> "" Then
+                                    pub_desc = pub_desc & " " & acpub_price_details
+                                End If
+
+                                temp_ac_id = temp_ac_id
+                                Call check_insert_ac_pub(temp_ac_id, 3)
+                            End If
+
+                            Response.Write("<Br>AC ID:" & temp_ac_id)
+
+
+
+                            'temp_pub_id
+
+                            'Update_Query = " Update scraped_aircraft set scrp_ac_processed = 'Y' where scrp_ac_id = " & temp_pub_id & "  "
+                            Update_Query = " Update Scraped_Aircraft set scrp_ac_processed = 'Y' where scrp_ac_id = " & temp_pub_id & "  "
+
+
+                            MySqlCommand_JETNET.CommandText = Update_Query
+                            MySqlCommand_JETNET.ExecuteNonQuery()
+
+                            System.Threading.Thread.Sleep(200)
+
+                        Else
+
+                            'Update_Query = " Update scraped_aircraft set scrp_ac_processed = 'Y' where scrp_ac_id = " & temp_pub_id & "  "
+                            Update_Query = " Update Scraped_Aircraft set scrp_ac_processed = 'Y' where scrp_ac_id = " & temp_pub_id & "  "
+
+
+                            MySqlCommand_JETNET.CommandText = Update_Query
+                            MySqlCommand_JETNET.ExecuteNonQuery()
+
+                            System.Threading.Thread.Sleep(200)
+                        End If
+
+                    Next
+                Else
+                End If
+            End If
+
+
+
+        Catch ex As Exception
+        Finally
+
+        End Try
+
+    End Function
+
+    Public Function scrape_for_Controller_Scraper(ByVal page_num As Long)
+
+
+        Dim string_text As String = ""
+        Dim string_text2 As String = ""
+        Dim i As Integer = 0
+        Dim final_string As String = ""
+        Dim original_string_text As String = ""
+        Dim article_link As String = ""
+        Dim spot_to_find As Integer = 0
+        Dim spot_to_find2 As Integer = 0
+        Dim spot_to_find3 As Integer = 0
+        Dim k As Integer = 0
+        Dim skip_this As Boolean = False
+        Dim extra_note As String = ""
+
+        Dim temp_ac_name As String = ""
+        Dim temp_engine As String = ""
+        Dim temp_eng As String = ""
+        Dim temp_av As String = ""
+        Dim temp_ac_id As Long = 0
+        Dim temp_make As String = ""
+        Dim temp_temp As String
+        Dim temp_model As String = ""
+        Dim temp_year As String = ""
+        Dim array_split_make() As String
+        Dim tcount As Integer = 0
+        Dim results_table As New DataTable
+        Dim temp_pub_id As Long = 0
+        Dim Update_Query As String = ""
+
+
+        Dim misc_1 As String = ""
+        Dim misc_2 As String = ""
+        Dim misc_3 As String = ""
+        Dim misc_4 As String = ""
+        Dim misc_5 As String = ""
+        Dim misc_6 As String = ""
+        Dim misc_7 As String = ""
+        Dim misc_8 As String = ""
+        Dim misc_9 As String = ""
+        Dim misc_10 As String = ""
+        Dim misc_11 As String = ""
+        Dim misc_12 As String = ""
+        Dim misc_13 As String = ""
+        Dim misc_14 As String = ""
+        Dim misc_15 As String = ""
+        Dim misc_16 As String = ""
+        Dim misc_17 As String = ""
+        Dim misc_18 As String = ""
+        Dim misc_19 As String = ""
+        Dim misc_20 As String = ""
+        Dim scrp_ac_note2 As String = ""
+
+
+        Try
+
+
+            System.Threading.Thread.Sleep(10)
+            Response.Flush()
+            System.Threading.Thread.Sleep(10)
+
+
+
+            tcount = tcount + 1  ' do every third one 
+
+            results_table = find_scraped_aircraft("Controller")
+
+            If Not IsNothing(results_table) Then
+                If results_table.Rows.Count > 0 Then
+                    For Each r As DataRow In results_table.Rows
+
+
+                        acpub_count = acpub_count + 1
+
+                        temp_ac_id = 0
+                        temp_ac_name = ""
+                        temp_engine = ""
+                        temp_eng = ""
+                        temp_av = ""
+
+                        pub_reg_no = ""
+                        pub_ser_no = ""
+                        pub_desc = ""
+                        pub_price = ""
+                        pub_aftt = ""
+                        pub_seller_info = ""
+                        pub_picture = ""
+                        pub_status = ""
+                        pub_url = ""
+                        has_pics = False
+                        aftt_different = ""
+                        temp_year = ""
+                        temp_make = ""
+                        temp_model = ""
+                        pub_comp_id = 0
+                        temp_pub_id = 0
+                        Update_Query = ""
+                        scrp_ac_note2 = ""
+
+                        misc_1 = ""
+                        misc_2 = ""
+                        misc_3 = ""
+                        misc_4 = ""
+                        misc_5 = ""
+                        misc_6 = ""
+                        misc_7 = ""
+                        misc_8 = ""
+                        misc_9 = ""
+                        misc_10 = ""
+                        misc_11 = ""
+                        misc_12 = ""
+                        misc_13 = ""
+                        misc_14 = ""
+                        misc_15 = ""
+                        misc_16 = ""
+                        misc_17 = ""
+                        misc_18 = ""
+                        misc_19 = ""
+                        misc_20 = ""
+
+                        ' scrp_ac_id, scrp_ac_source, scrp_ac_model, scrp_ac_asking_price , scrp_ac_detail_link, "
+                        '     select_query &= " scrp_ac_location , scrp_ac_dealer, scrp_ac_year, scrp_ac_ser_no , scrp_ac_airframe_tot_hrs , scrp_ac_note
+
+
+
+                        If Not IsDBNull(r.Item("scrp_ac_id")) Then
+                            temp_pub_id = Trim(r.Item("scrp_ac_id"))
+                        End If
+
+                        If Not IsDBNull(r.Item("scrp_ac_model")) Then
+                            temp_ac_name = Trim(r.Item("scrp_ac_model"))
+                        End If
+
+                        ' added for where the ac model is in misc 10
+                        If Trim(temp_ac_name) = "" Then
+                            If Not IsDBNull(r.Item("scrp_ac_misc_10")) Then
+                                temp_ac_name = Trim(r.Item("scrp_ac_misc_10"))
+                            End If
+                        End If
+
+                        If Trim(temp_ac_name) <> "" Then
+
+
+                            If Not IsDBNull(r.Item("scrp_ac_misc_1")) Then
+                                misc_1 = Trim(r.Item("scrp_ac_misc_1"))
+                            End If
+                            If Not IsDBNull(r.Item("scrp_ac_misc_2")) Then
+                                misc_2 = Trim(r.Item("scrp_ac_misc_2"))
+                            End If
+                            If Not IsDBNull(r.Item("scrp_ac_misc_3")) Then
+                                misc_3 = Trim(r.Item("scrp_ac_misc_3"))
+                            End If
+                            If Not IsDBNull(r.Item("scrp_ac_misc_4")) Then
+                                misc_4 = Trim(r.Item("scrp_ac_misc_4"))
+                            End If
+
+                            If Not IsDBNull(r.Item("scrp_ac_misc_6")) Then
+                                misc_6 = Trim(r.Item("scrp_ac_misc_6"))
+                            End If
+                            If Not IsDBNull(r.Item("scrp_ac_misc_7")) Then
+                                misc_7 = Trim(r.Item("scrp_ac_misc_7"))
+                            End If
+                            ' 8 is reg no
+                            ' 9 is total time  
+
+                            If Not IsDBNull(r.Item("scrp_ac_misc_7")) Then
+                                misc_7 = Trim(r.Item("scrp_ac_misc_7"))
+                            End If
+
+                            If Not IsDBNull(r.Item("scrp_ac_misc_12")) Then
+                                misc_12 = Trim(r.Item("scrp_ac_misc_12"))
+                            End If
+                            If Not IsDBNull(r.Item("scrp_ac_misc_13")) Then
+                                misc_13 = Trim(r.Item("scrp_ac_misc_13"))
+                            End If
+                            If Not IsDBNull(r.Item("scrp_ac_misc_14")) Then
+                                misc_14 = Trim(r.Item("scrp_ac_misc_14"))
+                            End If
+                            If Not IsDBNull(r.Item("scrp_ac_misc_15")) Then
+                                misc_15 = Trim(r.Item("scrp_ac_misc_15"))
+                            End If
+                            If Not IsDBNull(r.Item("scrp_ac_misc_16")) Then
+                                misc_16 = Trim(r.Item("scrp_ac_misc_16"))
+                            End If
+
+                            If Not IsDBNull(r.Item("scrp_ac_misc_18")) Then
+                                misc_18 = Trim(r.Item("scrp_ac_misc_18"))
+                            End If
+
+                            If Not IsDBNull(r.Item("scrp_ac_misc_20")) Then
+                                misc_20 = Trim(r.Item("scrp_ac_misc_20"))
+                            End If
+
+
+                            If Not IsDBNull(r.Item("scrp_ac_reg_no")) Then
+                                If Trim(r.Item("scrp_ac_reg_no")) <> "" Then
+                                    pub_reg_no = Trim(r.Item("scrp_ac_reg_no"))
+                                ElseIf Not IsDBNull(r.Item("scrp_ac_misc_8")) Then
+                                    pub_reg_no = Trim(r.Item("scrp_ac_misc_8"))
+                                End If
+                            ElseIf Not IsDBNull(r.Item("scrp_ac_misc_8")) Then
+                                pub_reg_no = Trim(r.Item("scrp_ac_misc_8"))
+                            End If
+
+                            If Not IsDBNull(r.Item("scrp_ac_ser_no")) Then
+                                pub_ser_no = Trim(r.Item("scrp_ac_ser_no"))
+                            End If
+
+                            If Not IsDBNull(r.Item("scrp_ac_airframe_tot_hrs")) Then
+                                If Trim(r.Item("scrp_ac_airframe_tot_hrs")) <> "" Then
+                                    pub_aftt = Trim(r.Item("scrp_ac_airframe_tot_hrs"))
+                                ElseIf Not IsDBNull(r.Item("scrp_ac_misc_9")) Then
+                                    pub_aftt = Trim(r.Item("scrp_ac_misc_9"))
+                                End If
+                            ElseIf Not IsDBNull(r.Item("scrp_ac_misc_9")) Then
+                                pub_aftt = Trim(r.Item("scrp_ac_misc_9"))
+                            End If
+
+                            If Not IsDBNull(r.Item("scrp_ac_note")) Then
+                                pub_desc = Trim(r.Item("scrp_ac_note"))
+                            End If
+
+                            If Not IsDBNull(r.Item("scrp_ac_note2")) Then
+                                scrp_ac_note2 = Trim(r.Item("scrp_ac_note2"))
+                            End If
+
+
+                            If Not IsDBNull(r.Item("scrp_ac_misc_19")) Then
+                                If Trim(r.Item("scrp_ac_misc_19")) <> "" Then
+                                    misc_19 = Trim(r.Item("scrp_ac_misc_19"))
+                                    If Trim(misc_19) <> "0" And Trim(misc_19) <> "1" Then
+                                        If IsNumeric(Trim(misc_19)) = True Then
+                                            has_pics = True
+                                        End If
+                                    End If
+                                End If
+                            End If
+
+
+
+
+                            combine_fields_into_fields(misc_1, misc_2, misc_3, misc_4, misc_5, misc_6, misc_7, misc_8, pub_reg_no, pub_ser_no, pub_aftt, misc_12)
+
+
+
+                            re_arrange_scraped_fields(pub_reg_no, pub_ser_no, pub_aftt, pub_desc, scrp_ac_note2, misc_1, misc_2, misc_3, misc_4, misc_5, misc_6, misc_7, misc_8, misc_9, misc_12, misc_13, misc_14, misc_16, misc_15)
+
+
+                            If Not IsDBNull(r.Item("scrp_ac_asking_price")) Then
+                                pub_price = Trim(r.Item("scrp_ac_asking_price"))
+
+
+                                pub_price = Replace(pub_price, "Price:USD ", "")
+                                pub_price = Replace(pub_price, "Price: USD ", "")
+                                pub_price = Replace(pub_price, "Price Reduced", "")
+                                pub_price = Replace(pub_price, "Fractional Ownership", "")
+                                pub_price = Replace(pub_price, "Price: €", "")
+                                pub_price = Replace(pub_price, "Price:", "")
+                                pub_price = Replace(pub_price, "USD", "")
+                                pub_price = Replace(pub_price, vbLf, "")
+
+                                If InStr(pub_price, "(") Then
+                                    pub_price = Left(pub_price, InStr(pub_price, "(") - 1)
+                                End If
+
+                            End If
+
+                                If Trim(pub_price) = "" Then
+                                If Not IsDBNull(r.Item("scrp_ac_misc_11")) Then
+                                    pub_price = Trim(r.Item("scrp_ac_misc_11"))
+
+
+                                    pub_price = Replace(pub_price, "Price:USD ", "")
+                                    pub_price = Replace(pub_price, "Price: USD ", "")
+                                    pub_price = Replace(pub_price, "Price Reduced", "")
+                                    pub_price = Replace(pub_price, "Fractional Ownership", "")
+                                    pub_price = Replace(pub_price, "Price: €", "")
+                                    pub_price = Replace(pub_price, "Price:", "")
+                                        pub_price = Replace(pub_price, "USD", "")
+                                        pub_price = Replace(pub_price, vbLf, "")
+
+                                    If InStr(pub_price, "(") Then
+                                        pub_price = Left(pub_price, InStr(pub_price, "(") - 1)
+                                    End If
+
+                                End If
+                            End If
+
+
+                            If Not IsDBNull(r.Item("scrp_ac_detail_link")) Then
+                                pub_url = Trim(r.Item("scrp_ac_detail_link"))
+                            End If
+
+                            ' misc 15 is the url field for others 
+                            If Trim(pub_url) = "" Then
+                                If Not IsDBNull(r.Item("scrp_ac_misc_15")) Then
+                                    pub_url = Trim(r.Item("scrp_ac_misc_15"))
+                                End If
+                            End If
+
+
+                            'If Not IsDBNull(r.Item("scrp_ac_location")) Then
+                            '    temp_ac_name = Trim(r.Item("scrp_ac_location"))
+                            'End If
+
+                            If Not IsDBNull(r.Item("scrp_ac_dealer")) Then
+                                If Trim(r.Item("scrp_ac_dealer")) <> "" Then
+                                    pub_seller_info = Trim(r.Item("scrp_ac_dealer"))
+                                ElseIf Not IsDBNull(r.Item("scrp_ac_misc_5")) Then
+                                    If Trim(r.Item("scrp_ac_misc_5")) <> "" Then
+                                        pub_seller_info = Trim(r.Item("scrp_ac_misc_5"))
+                                    ElseIf Not IsDBNull(r.Item("scrp_ac_misc_17")) Then
+                                        pub_seller_info = Trim(r.Item("scrp_ac_misc_17"))
+                                    End If
+                                ElseIf Not IsDBNull(r.Item("scrp_ac_misc_17")) Then
+                                    pub_seller_info = Trim(r.Item("scrp_ac_misc_17"))
+                                End If
+
+                            ElseIf Not IsDBNull(r.Item("scrp_ac_misc_5")) Then
+                                pub_seller_info = Trim(r.Item("scrp_ac_misc_5"))
+                            ElseIf Not IsDBNull(r.Item("scrp_ac_misc_17")) Then
+                                pub_seller_info = Trim(r.Item("scrp_ac_misc_17"))
+                            End If
+
+
+
+                            If Not IsDBNull(r.Item("scrp_ac_year")) Then
+                                temp_year = Trim(r.Item("scrp_ac_year"))
+                            ElseIf Trim(temp_ac_name) <> "" And Len(Trim(temp_ac_name)) > 5 Then
+                                If IsNumeric(Left(Trim(temp_ac_name), 4)) = True Then
+                                    temp_year = Left(Trim(temp_ac_name), 4) ' then steal the year from the title 
+                                End If
+                            End If
+
+
+                            If Not IsDBNull(r.Item("scrp_ac_year")) Then
+                                temp_year = Trim(r.Item("scrp_ac_year"))
+                            End If
+
+
+
+
+                            acpub_original_name = temp_ac_name & " " & pub_ser_no
+
+                            cutme(acpub_original_name)
+                            cutme(temp_ac_name)
+                            cutme(pub_price)
+                            cutme(pub_url)
+                            cutme(pub_seller_info)
+                            cutme(pub_desc)
+                            cutme(temp_year)
+                            cutme(pub_ser_no)
+                            cutme(pub_aftt)
+
+                            pub_aftt = Replace(pub_aftt, "Hours", "")
+
+
+                            Response.Write("<Br>")
+                            Response.Write("<Br>" & temp_ac_name)
+                            Response.Write("<Br>" & pub_price)
+                            Response.Write("<Br>" & pub_url)
+                            Response.Write("<Br>" & pub_seller_info)
+                            Response.Write("<Br>" & pub_desc)
+                            Response.Write("<Br>" & temp_year)
+                            Response.Write("<Br>" & pub_ser_no)
+                            Response.Write("<Br>" & pub_aftt)
+
+
+                            array_split_make = Split(Trim(temp_ac_name), " ")
+
+                            If array_split_make.Length = 2 Then
+                                temp_make = array_split_make(0)
+                                temp_model = array_split_make(1)
+                            ElseIf array_split_make.Length = 3 Then
+                                temp_make = array_split_make(1)
+                                temp_model = array_split_make(2)
+                            ElseIf array_split_make.Length = 4 Then
+                                temp_make = array_split_make(2)
+                                temp_model = array_split_make(3)
+                            ElseIf array_split_make.Length = 5 Then
+                                temp_make = array_split_make(3)
+                                temp_model = array_split_make(4)
+                            Else
+                                temp_temp = ""
+                            End If
+
+
+
+                            If InStr(Trim(pub_ser_no), "&dash;") > 0 Then
+                                pub_ser_no = ""
+                            End If
+
+                            temp_ac_id = find_ac_global_search(pub_ser_no, temp_make, temp_model, "")
+                            If temp_ac_id = 0 Then
+                                temp_ac_id = find_ac_global_search(pub_ser_no, "", temp_model, "")
+                                If temp_ac_id = 0 Then
+                                    temp_ac_id = find_ac_global_search(pub_ser_no, "", "", pub_reg_no)
+                                    If temp_ac_id = 0 Then
+
+                                        temp_ac_id = find_ac_global_search(pub_ser_no, "", "", "")
+                                        If temp_ac_id = 0 Then
+                                            temp_ac_id = find_ac_global_search("", "", "", pub_reg_no)
+                                            If temp_ac_id = 0 Then
+                                                temp_ac_id = temp_ac_id
+                                            End If
+                                        End If
+
+                                    End If
+                                End If
+
+                            End If
+
+
+                            If pub_comp_id = 0 Then
+                                If Not IsNothing(pub_seller_info) Then
+                                    If Trim(pub_seller_info) <> "" Then
+                                        'if there is a line feed or break, then try to get just the company name 
+                                        If InStr(Trim(pub_seller_info), Asc(10)) > 0 Then
+                                            pub_comp_id = find_comp_id_global_search(Left(Trim(pub_seller_info), InStr(Trim(pub_seller_info), Asc(10)) - 1))
+                                        ElseIf InStr(Trim(pub_seller_info), Asc(13)) > 0 Then
+                                            pub_comp_id = find_comp_id_global_search(Left(Trim(pub_seller_info), InStr(Trim(pub_seller_info), Asc(13)) - 1))
+                                        Else
+                                            pub_comp_id = find_comp_id_global_search(Left(Trim(pub_seller_info), 17))
+                                        End If
+                                    End If
+                                End If
+                            End If
+
+                            If pub_comp_id = 0 And Trim(pub_seller_info <> "") Then
+                                pub_comp_id = find_comp_id_previous_pub(pub_seller_info, 2)
+                            End If
+
+
+                            '    If Trim(pub_ser_no) = "" And Trim(pub_reg_no) = "" Then
+                            ' if they are both blank, then here 
+                            '   pub_ser_no = pub_ser_no
+                            'Else
+                            acpub_price_details = ""
+                                If On_Naughty_List(temp_ac_name) = True Then
+                                    ' if its on naughtly list then excldue  
+                                Else
+                                    If temp_ac_id > 0 Then
+                                        Call find_ac_data(temp_ac_id)
+                                    Else
+                                        acpub_process_status = "For Sale Not Found – No AC Match"
+                                        acpub_status = "O"
+                                    End If
+
+                                    If Trim(aftt_different) <> "" Then
+                                        pub_desc = pub_desc & aftt_different
+                                    End If
+
+                                    If Trim(acpub_price_details) <> "" Then
+                                        pub_desc = pub_desc & " " & acpub_price_details
+                                    End If
+
+                                    temp_ac_id = temp_ac_id
+                                    Call check_insert_ac_pub(temp_ac_id, 2)
+                                End If
+                            '  End If
+                            Response.Write("<Br>AC ID:" & temp_ac_id)
+
+
+                        'temp_pub_id
+                        Else
+                            temp_ac_id = temp_ac_id
+                        End If
+
+
+                        '   If Trim(pub_ser_no) = "" And Trim(pub_reg_no) = "" Then
+                        ' if they are both blank, then here 
+                        '  pub_ser_no = pub_ser_no
+                        '   Else
+                        Update_Query = " Update Scraped_Aircraft set scrp_ac_processed = 'Y' where scrp_ac_id = " & temp_pub_id & "  "
+
+                        MySqlCommand_JETNET.CommandText = Update_Query
+                            MySqlCommand_JETNET.ExecuteNonQuery()
+
+                            System.Threading.Thread.Sleep(200)
+                        '   End If
+
+                    Next
+                Else
+                End If
+            End If
+
+
+
+
+        Catch ex As Exception
+        Finally
+
+        End Try
+
+    End Function
+    Public Function combine_fields_into_fields(ByRef field_1 As String, ByRef field_2 As String, ByRef field_3 As String, ByRef field_4 As String, ByRef field_5 As String, ByRef field_6 As String, ByRef field_7 As String, ByRef field_8 As String, ByRef reg_no As String, ByRef ser_no As String, ByRef total_time As String, ByRef total_landinngs As String)
+
+
+
+        If InStr(field_1, "Registration #") > 0 Then
+            reg_no = field_1 & " " & field_2
+        ElseIf InStr(field_3, "Registration #") > 0 Then
+            reg_no = field_3 & " " & field_4
+        ElseIf InStr(field_5, "Registration #") > 0 Then
+            reg_no = field_5 & " " & field_6
+        ElseIf InStr(field_7, "Registration #") > 0 Then
+            reg_no = field_7 & " " & field_8
+        End If
+
+
+        If InStr(field_1, "Serial Number") > 0 Then
+            ser_no = field_1 & " " & field_2
+        ElseIf InStr(field_3, "Serial Number") > 0 Then
+            ser_no = field_3 & " " & field_4
+        ElseIf InStr(field_5, "Serial Number") > 0 Then
+            ser_no = field_5 & " " & field_6
+        ElseIf InStr(field_7, "Serial Number") > 0 Then
+            ser_no = field_7 & " " & field_8
+        End If
+
+
+        If InStr(field_1, "Total Time") > 0 Then
+            total_time = field_1 & " " & field_2
+        ElseIf InStr(field_3, "Total Time") > 0 Then
+            total_time = field_3 & " " & field_4
+        ElseIf InStr(field_5, "Total Time") > 0 Then
+            total_time = field_5 & " " & field_6
+        ElseIf InStr(field_7, "Total Time") > 0 Then
+            total_time = field_7 & " " & field_8
+        End If
+
+
+        If InStr(field_1, "Total Landings") > 0 Then
+            total_landinngs = field_1 & " " & field_2
+        ElseIf InStr(field_3, "Total Landings") > 0 Then
+            total_landinngs = field_3 & " " & field_4
+        ElseIf InStr(field_5, "Total Landings") > 0 Then
+            total_landinngs = field_5 & " " & field_6
+        ElseIf InStr(field_7, "Total Landings") > 0 Then
+            total_landinngs = field_7 & " " & field_8
+        End If
+
+
+    End Function
+    Public Function re_arrange_scraped_fields(ByRef reg_no As String, ByRef ser_no As String, ByRef total_time As String, ByRef notes As String, ByRef notes2 As String, ByVal misc1 As String, ByVal misc2 As String, ByVal misc3 As String, ByVal misc4 As String, ByVal misc5 As String, ByVal misc6 As String, ByVal misc7 As String, ByVal misc8 As String, ByVal misc9 As String, ByVal misc12 As String, ByVal misc13 As String, ByVal misc14 As String, ByVal misc16 As String, ByVal misc15 As String)
+        ' first 4 fields are byref to return the strings that we will be using 
+
+        Dim final_Reg As String = ""
+        Dim final_ser As String = ""
+        Dim final_time As String = ""
+        Dim final_notes As String = ""
+
+
+        reg_no = Replace(reg_no, vbLf, "")
+        ser_no = Replace(ser_no, vbLf, "")
+        total_time = Replace(total_time, vbLf, "")
+        notes = Replace(notes, vbLf, "")
+        notes2 = Replace(notes2, vbLf, "")
+        misc1 = Replace(misc1, vbLf, "")
+        misc2 = Replace(misc2, vbLf, "")
+        misc3 = Replace(misc3, vbLf, "")
+        misc4 = Replace(misc4, vbLf, "")
+        misc5 = Replace(misc5, vbLf, "")
+        misc6 = Replace(misc6, vbLf, "")
+        misc7 = Replace(misc7, vbLf, "")
+        misc8 = Replace(misc8, vbLf, "")
+        misc9 = Replace(misc9, vbLf, "")
+        misc12 = Replace(misc12, vbLf, "")
+        misc13 = Replace(misc13, vbLf, "")
+        misc14 = Replace(misc14, vbLf, "")
+
+
+        If InStr(reg_no, "Registration #") > 0 Then
+            final_Reg = Replace(reg_no, "Registration #", "")
+        ElseIf InStr(misc2, "Registration #") > 0 Then
+            final_Reg = Replace(misc2, "Registration #", "")
+        ElseIf InStr(misc12, "Registration #") > 0 Then
+            final_Reg = Replace(misc12, "Registration #", "")
+        ElseIf InStr(misc13, "Registration #") > 0 Then
+            final_Reg = Replace(misc13, "Registration #", "")
+        ElseIf InStr(misc14, "Registration #") > 0 Then
+            final_Reg = Replace(misc14, "Registration #", "")
+        ElseIf InStr(misc16, "Registration #") > 0 Then
+            final_Reg = Replace(misc16, "Registration #", "")
+        Else
+            final_Reg = final_Reg
+        End If
+
+
+        If InStr(ser_no, "Serial Number") > 0 Then
+            final_ser = Replace(ser_no, "Serial Number", "")
+        ElseIf InStr(misc1, "Serial Number") > 0 Then
+            final_ser = Replace(misc1, "Serial Number", "")
+        ElseIf InStr(misc12, "Serial Number") > 0 Then
+            final_ser = Replace(misc12, "Serial Number", "")
+        ElseIf InStr(misc13, "Serial Number") > 0 Then
+            final_ser = Replace(misc13, "Serial Number", "")
+        ElseIf InStr(misc14, "Serial Number") > 0 Then
+            final_ser = Replace(misc14, "Serial Number", "")
+        ElseIf InStr(misc16, "Serial Number") > 0 Then
+            final_ser = Replace(misc16, "Serial Number", "")
+        Else
+            final_ser = final_ser
+        End If
+
+
+        If InStr(total_time, "Total Time") > 0 Then
+            final_time = Replace(total_time, "Total Time", "")
+        ElseIf InStr(reg_no, "Total Time") > 0 Then
+            final_time = Replace(reg_no, "Total Time", "")
+        ElseIf InStr(ser_no, "Total Time") > 0 Then
+            final_time = Replace(ser_no, "Total Time", "")
+        ElseIf InStr(misc1, "Total Time") > 0 Then
+            final_time = Replace(misc1, "Total Time", "")
+        ElseIf InStr(misc2, "Total Time") > 0 Then
+            final_time = Replace(misc2, "Total Time", "")
+        ElseIf InStr(misc3, "Total Time") > 0 Then
+            final_time = Replace(misc3, "Total Time", "")
+        ElseIf InStr(misc12, "Total Time") > 0 Then
+            final_time = Replace(misc12, "Total Time", "")
+        ElseIf InStr(misc13, "Total Time") > 0 Then
+            final_time = Replace(misc13, "Total Time", "")
+        ElseIf InStr(misc14, "Total Time") > 0 Then
+            final_time = Replace(misc14, "Total Time", "")
+        ElseIf InStr(misc16, "Total Time") > 0 Then
+            final_time = Replace(misc16, "Total Time", "")
+        Else
+            final_time = final_time
+        End If
+
+
+        ' find landings  
+        If InStr(notes, "Total Landings") > 0 Then
+            final_notes = Replace(notes, "Total Landings", "")
+        ElseIf InStr(misc4, "Total Landings") > 0 Then
+            final_notes = Replace(misc4, "Total Landings", "")
+        ElseIf InStr(notes2, "Total Landings") > 0 Then
+            final_notes = Replace(notes2, "Total Landings", "")
+        ElseIf InStr(misc12, "Total Landings") > 0 Then
+            final_notes = Replace(misc12, "Total Landings", "")
+        ElseIf InStr(misc13, "Total Landings") > 0 Then
+            final_notes = Replace(misc13, "Total Landings", "")
+        ElseIf InStr(misc14, "Total Landings") > 0 Then
+            final_notes = Replace(misc14, "Total Landings", "")
+        ElseIf InStr(misc15, "Total Landings") > 0 Then
+            final_notes = Replace(misc15, "Total Landings", "")
+        End If
+
+
+        final_Reg = Replace(final_Reg, ":", "")
+        final_ser = Replace(final_ser, ":", "")
+        final_time = Replace(final_time, ":", "")
+
+
+        'Additional Equipment
+        'Number of Seats
+        'Year Painted
+        ' Engine 1 Time
+        'Exterior Notes 
+
+        reg_no = final_Reg
+        ser_no = final_ser
+        total_time = final_time
+        notes = final_notes
+
+
+
+
+    End Function
+
+
 
     Public Function scrape_for_AvBuyer_12_22_21(ByVal page_num As Long)
         Dim Str As System.IO.Stream
@@ -10021,7 +11213,7 @@ Partial Public Class _Default
         End Try
 
     End Function
-    Public Function find_scraped_aircraft() As DataTable
+    Public Function find_scraped_aircraft(ByVal source_temp As String) As DataTable
 
         find_scraped_aircraft = Nothing
         Dim Insert_Query As String = ""
@@ -10033,9 +11225,27 @@ Partial Public Class _Default
         Try
 
             select_query = "  Select distinct scrp_ac_id, scrp_ac_source, scrp_ac_model, scrp_ac_asking_price , scrp_ac_detail_link, "
-            select_query &= " scrp_ac_location , scrp_ac_dealer, scrp_ac_year, scrp_ac_ser_no , scrp_ac_airframe_tot_hrs , scrp_ac_note  "
-            select_query &= " from scraped_aircraft "
-            select_query &= " where scrp_ac_processed = 'N' and scrp_ac_cleansed = 'Y' "
+            select_query &= " scrp_ac_location , scrp_ac_dealer, scrp_ac_year, scrp_ac_ser_no , scrp_ac_airframe_tot_hrs , scrp_ac_note, scrp_ac_reg_no, scrp_ac_note2  "
+
+            select_query &= " , scrp_ac_misc_1, scrp_ac_misc_2, scrp_ac_misc_3, scrp_ac_misc_4, scrp_ac_misc_5, scrp_ac_misc_6, scrp_ac_misc_7, scrp_ac_misc_8, scrp_ac_misc_9, scrp_ac_misc_10  "
+
+            select_query &= " , scrp_ac_misc_11, scrp_ac_misc_12, scrp_ac_misc_13, scrp_ac_misc_14, scrp_ac_misc_15, scrp_ac_misc_16, scrp_ac_misc_17, scrp_ac_misc_18, scrp_ac_misc_19, scrp_ac_misc_20  "
+
+            If Trim(source_temp) = "Trade-A-Plane" Or Trim(source_temp) = "Controller" Then
+                select_query &= " from Scraped_Aircraft "
+                select_query &= " where scrp_ac_processed = 'N'   "  ' trade a plane comesin cleansed 
+            Else
+                select_query &= " from scraped_aircraft "
+                select_query &= " where scrp_ac_processed = 'N' and scrp_ac_cleansed = 'Y' "
+            End If
+
+
+            '    select_query &= " and scrp_ac_misc_15 = 'https://www.controller.com/listing/for-sale/222982735/1973-cessna-414-piston-twin-aircraft' "
+
+
+            If Trim(source_temp) <> "" Then
+                select_query &= " and scrp_ac_source = '" & Trim(source_temp) & "' "
+            End If
             ' select_query &= " where scrp_ac_asking_price = 'Off market' "
 
             MySqlCommand_JETNET.CommandText = select_query
@@ -10641,12 +11851,38 @@ Partial Public Class _Default
 
         Next
       End If
-      atemptable.Clear()
+            atemptable.Clear()
 
 
 
 
-    Catch ex As Exception
+            select_query = "select cast(amod_make_name as varchar(100)) + ' ' + cast(amod_model_name as varchar(100))  as bad_model  from aircraft_model with (NOLOCK) where amod_class_code = 'E' order by amod_make_name asc, amod_model_name asc  "
+            MySqlCommand_JETNET.CommandText = select_query
+            MyAircraftReader_JETNET = MySqlCommand_JETNET.ExecuteReader()
+
+            Try
+                atemptable.Load(MyAircraftReader_JETNET)
+            Catch constrExc As System.Data.ConstraintException
+                Dim rowsErr As System.Data.DataRow() = atemptable.GetErrors()
+                ' aError = "Error in Get_CRM_VIEW_Prospects load datatable" + constrExc.Message
+            End Try
+
+            If atemptable.Rows.Count > 0 Then
+                For Each r As DataRow In atemptable.Rows
+
+                    If Not IsDBNull(r.Item("bad_model")) Then
+                        Naughty_List_Of_Models(Naughty_List_Size) = r.Item("bad_model")
+                        Naughty_List_Size = Naughty_List_Size + 1
+                    End If
+
+                Next
+            End If
+            atemptable.Clear()
+
+
+
+
+        Catch ex As Exception
     Finally
       MySqlCommand_JETNET.Dispose()
       atemptable = Nothing
@@ -10769,7 +12005,14 @@ Partial Public Class _Default
             newdate = DateAdd(DateInterval.Day, -14, Now())
 
             select_query &= " and publist_entry_date >= '" & newdate.Year & "-" & newdate.Month & "-" & newdate.Day & "' "
-            select_query &= " and publist_url = '" & Trim(pub_url) & "' "
+
+            If temp_publog_source = 2 Then
+                select_query &= " and publist_url like '" & Trim(pub_url) & "%' "
+            Else
+                select_query &= " and publist_url = '" & Trim(pub_url) & "' "
+            End If
+
+
 
             If Trim(temp_publog_source) <> "" Then
                 select_query &= " and publist_source = '" & temp_publog_source & "' "
@@ -10810,7 +12053,13 @@ Partial Public Class _Default
                 'select_query &= " where dbo.LeaveAlphaAndNumericAndSpace(publist_original_desc) = '" & Trim(acpub_original_name) & "' "
 
                 select_query &= " and publist_entry_date >= '" & newdate.Year & "-" & newdate.Month & "-" & newdate.Day & "' "
-                select_query &= " and publist_url = '" & Trim(pub_url) & "' "
+
+                If temp_publog_source = 2 Then
+                    select_query &= " and publist_url like '" & Trim(pub_url) & "%' "
+                Else
+                    select_query &= " and publist_url = '" & Trim(pub_url) & "' "
+                End If
+
 
                 '  publist_ac_id = " & ac_id & ""
 
@@ -10844,9 +12093,15 @@ Partial Public Class _Default
                 MyAircraftReader_JETNET.Close()
 
                     select_query = " select top 1 publist_ac_id from Publication_Listing with (NOLOCK) "
-
+                 
+                If temp_publog_source = 2 Then
+                    select_query &= " where publist_url like '" & Trim(pub_url) & "%' "
+                Else
                     select_query &= " where publist_url = '" & Trim(pub_url) & "' "
-                    select_query &= " and publist_entry_date >= '" & newdate.Year & "-" & newdate.Month & "-" & newdate.Day & "' "
+                End If
+
+
+                select_query &= " and publist_entry_date >= '" & newdate.Year & "-" & newdate.Month & "-" & newdate.Day & "' "
 
 
                     If Trim(temp_publog_source) <> "" Then
@@ -10885,10 +12140,16 @@ Partial Public Class _Default
                 newdate = DateAdd(DateInterval.Day, -14, Now())
 
                 select_query &= " and publist_entry_date <= '" & newdate.Year & "-" & newdate.Month & "-" & newdate.Day & "' "
-                select_query &= " and publist_url = '" & Trim(pub_url) & "' "
+
+                If temp_publog_source = 2 Then
+                    select_query &= " and publist_url like '" & Trim(pub_url) & "%' "
+                Else
+                    select_query &= " and publist_url = '" & Trim(pub_url) & "' "
+                End If
+
                 select_query &= " and publist_source = '" & temp_publog_source & "' "
                 select_query &= " and publist_status not in ('O', 'I')  "
-                select_query &= " and publist_description = '" & Left(pub_desc, 799) & "' "
+                select_query &= " and publist_description = '" & Left(Replace(pub_desc, "'", ""), 799) & "' "
                 select_query &= " and publist_seller_info = '" & Left(pub_seller_info, 799) & "' " ' added MSw - if its not seller info matching, we should re-open 
 
 
@@ -11092,7 +12353,7 @@ Partial Public Class _Default
                             If Trim(pub_desc) = "" And temp_publog_source = 2 Then
                                 temp_publog_source = temp_publog_source
                             Else
-                                Insert_Query &= " and publist_description <> '" & Left(pub_desc, 799) & "' "
+                                Insert_Query &= " and publist_description <> '" & Left(Replace(pub_desc, "'", ""), 799) & "' "
                             End If
 
 
@@ -11106,7 +12367,7 @@ Partial Public Class _Default
 
                             'so if the description changes then check to see if the aftt has changed or price has changed with no ignore
                             ' added or (publist_seller_info <> '" & Replace(pub_seller_info, "'", "") & "')  in MSW - 10/22/19
-                            Insert_Query &= "  and (publist_description <> '" & Left(pub_desc, 799) & "' or (publist_seller_info <> '" & Replace(pub_seller_info, "'", "") & "')  or (publist_aftt <> '" & pub_aftt & "' and not (publist_research_note like '%ignore aftt%' and publist_entry_date >= getdate() -7) ) or (publist_price <> '" & pub_price & "'  and not (publist_research_note like '%ignore price%' and publist_entry_date >= getdate() -7))  ) "
+                            Insert_Query &= "  and (publist_description <> '" & Left(Replace(pub_desc, "'", ""), 799) & "' or (publist_seller_info <> '" & Replace(pub_seller_info, "'", "") & "')  or (publist_aftt <> '" & pub_aftt & "' and not (publist_research_note like '%ignore aftt%' and publist_entry_date >= getdate() -7) ) or (publist_price <> '" & pub_price & "'  and not (publist_research_note like '%ignore price%' and publist_entry_date >= getdate() -7))  ) "
                             ' currently redundany check .. not just make sure no items have been ignored in the last week 
                             Insert_Query &= "  and  not (publist_research_note like '%ignore aftt%' and publist_entry_date >= getdate() -7 ) "
                             Insert_Query &= "  and  not (publist_research_note like '%ignore price%' and publist_entry_date >= getdate() -7 ) "
@@ -11117,7 +12378,14 @@ Partial Public Class _Default
 
 
                             Insert_Query &= " and publist_entry_date >= '" & newdate.Year & "-" & newdate.Month & "-" & newdate.Day & "' "
-                            Insert_Query &= " and publist_url = '" & Trim(pub_url) & "' "
+
+
+                            If temp_publog_source = 2 Then
+                                Insert_Query &= " and publist_url like '" & Trim(pub_url) & "%'  "
+                            Else
+                                Insert_Query &= " and publist_url = '" & Trim(pub_url) & "' "
+                            End If
+
                             Insert_Query &= " and publist_status in ('C', 'N','D') "
 
                             ' dont re-open it if the description has changed and the desription was in the last desription 
@@ -11190,23 +12458,27 @@ Partial Public Class _Default
                             If Trim(pub_desc) = "" And temp_publog_source = 2 Then
                                 temp_publog_source = temp_publog_source ' then dont add in 
                             Else
-                                Insert_Query &= "   And publist_description <> '" & Left(pub_desc, 799) & "' "
+                                Insert_Query &= "   And publist_description <> '" & Left(Replace(pub_desc, "'", ""), 799) & "' "
                             End If
 
                             Insert_Query &= " And publist_source = '" & temp_publog_source & "' "
                             ' publist_status = '" & acpub_status & "',  "
 
                             ' added this in to update only when any of these things has also changed 
-                            Insert_Query &= "  and (publist_description <> '" & Left(pub_desc, 799) & "' or (publist_aftt <> '" & pub_aftt & "' and not (publist_research_note like '%ignore aftt%' and publist_entry_date >= getdate() -7) ) or (publist_price <> '" & pub_price & "'  and not (publist_research_note like '%ignore price%' and publist_entry_date >= getdate() -7))  ) "
+                            Insert_Query &= "  and (publist_description <> '" & Left(Replace(pub_desc, "'", ""), 799) & "' or (publist_aftt <> '" & pub_aftt & "' and not (publist_research_note like '%ignore aftt%' and publist_entry_date >= getdate() -7) ) or (publist_price <> '" & pub_price & "'  and not (publist_research_note like '%ignore price%' and publist_entry_date >= getdate() -7))  ) "
                             Insert_Query &= "  and  not (publist_research_note like '%ignore aftt%' and publist_entry_date >= getdate() -7 ) "
                             Insert_Query &= "  and  not (publist_research_note like '%ignore price%' and publist_entry_date >= getdate() -7 ) "
 
                             Insert_Query &= "  and  (   (not (publist_research_note like '%no blind pub%' and publist_entry_date >= getdate() - 90))   or  (publist_ser_no <> '" & pub_ser_no & "')  or (publist_reg_no <> '" & pub_reg_no & "')    or (publist_seller_info <> '" & Replace(pub_seller_info, "'", "") & "')    ) "
-
-
-
+                             
                             Insert_Query &= " and publist_entry_date >= '" & newdate.Year & "-" & newdate.Month & "-" & newdate.Day & "' "
-                            Insert_Query &= " and publist_url = '" & Trim(pub_url) & "' "
+
+                            If temp_publog_source = 2 Then
+                                Insert_Query &= " and publist_url like '" & Trim(pub_url) & "%' "
+                            Else
+                                Insert_Query &= " and publist_url = '" & Trim(pub_url) & "' "
+                            End If
+
                             'Insert_Query &= " and publist_status in ('O', 'I') and publist_acct_rep <> 'PUB1' "   ' changed- MSW - 10/6/2020 - from patty - dont update status on In progress
                             Insert_Query &= " and publist_status in ('O') "    ' and publist_acct_rep <> 'PUB1' moved to below 
                             Insert_Query &= " and publist_acct_rep not in ('SPEC','NEW','CUST','PUB1') "   ' added msw - 10/7/2020 
@@ -16404,39 +17676,39 @@ Partial Public Class _Default
     End Try
   End Function
 
-  'Function Scrape_Aircraft_Exchange(ByVal link As String, ByVal id As Integer) As Long
-  '  Scrape_Aircraft_Exchange = 0
-  '  Dim Str As System.IO.Stream
-  '  Dim srRead As System.IO.StreamReader
-  '  Dim req As System.Net.WebRequest = System.Net.WebRequest.Create(link)
-  '  Dim resp As System.Net.WebResponse = req.GetResponse
-  '  Dim string_text As String = ""
-  '  Dim string_text2 As String = ""
-  '  Dim spot_to_find As Integer = 0
-  '  Dim spot_to_find2 As Integer = 0
-  '  Dim array_split() As String
-  '  Dim i As Integer = 0
-  '  Dim date_string As String = ""
-  '  Dim description_string As String = ""
-  '  Dim title_string As String = ""
-  '  Dim insert_string As String = ""
-  '  Dim link_to_go As String = ""
-  '  Try
+    'Function Scrape_Aircraft_Exchange(ByVal link As String, ByVal id As Integer) As Long
+    '  Scrape_Aircraft_Exchange = 0
+    '  Dim Str As System.IO.Stream
+    '  Dim srRead As System.IO.StreamReader
+    '  Dim req As System.Net.WebRequest = System.Net.WebRequest.Create(link)
+    '  Dim resp As System.Net.WebResponse = req.GetResponse
+    '  Dim string_text As String = ""
+    '  Dim string_text2 As String = ""
+    '  Dim spot_to_find As Integer = 0
+    '  Dim spot_to_find2 As Integer = 0
+    '  Dim array_split() As String
+    '  Dim i As Integer = 0
+    '  Dim date_string As String = ""
+    '  Dim description_string As String = ""
+    '  Dim title_string As String = ""
+    '  Dim insert_string As String = ""
+    '  Dim link_to_go As String = ""
+    '  Try
 
 
-  '    Str = resp.GetResponseStream
-  '    srRead = New System.IO.StreamReader(Str)
-  '    ' read all the text 
-  '    string_text = srRead.ReadToEnd().ToString
-  '    string_text = string_text
+    '    Str = resp.GetResponseStream
+    '    srRead = New System.IO.StreamReader(Str)
+    '    ' read all the text 
+    '    string_text = srRead.ReadToEnd().ToString
+    '    string_text = string_text
 
 
-  '  Catch ex As Exception
-  '    Response.Write(insert_string)
-  '  Finally
-  '  End Try
-  'End Function
-  Function scrape_controller_html()
+    '  Catch ex As Exception
+    '    Response.Write(insert_string)
+    '  Finally
+    '  End Try
+    'End Function
+    Function scrape_controller_html()
 
         'Dim applicationDirectory = Path.GetDirectoryName("C:\Users\matt\Desktop\Work Documents\")
         'Dim myFile As String = Path.Combine(applicationDirectory, "Page53.html")
@@ -16465,15 +17737,15 @@ Partial Public Class _Default
             'MySqlConn_JETNET.ConnectionString = Inhouse_Test_Connection
             'MySqlConn_JETNET.ConnectionString = JETNET_LIVE_SQL_CONN
             MySqlConn_JETNET.Open()
-      MySqlCommand_JETNET.Connection = MySqlConn_JETNET
-      MySqlCommand_JETNET.CommandType = CommandType.Text
-      MySqlCommand_JETNET.CommandTimeout = 60
+            MySqlCommand_JETNET.Connection = MySqlConn_JETNET
+            MySqlCommand_JETNET.CommandType = CommandType.Text
+            MySqlCommand_JETNET.CommandTimeout = 60
 
-      Call insert_into_eventlog("Aircraft Pubs Started", "Research Assistant")
+            Call insert_into_eventlog("Aircraft Pubs Started", "Research Assistant")
 
-      ypl_start_date = Date.Now
+            ypl_start_date = Date.Now
 
-      Call Find_Naughty_Models()
+            Call Find_Naughty_Models()
 
             'Dim user As New Dictionary(Of String, String)
             'user.Add("username", "Admiinistrator")
@@ -16551,27 +17823,104 @@ Partial Public Class _Default
 
             Call Insert_EMail_Queue_Record(yt_table)
 
-      Call insert_into_eventlog("Aircraft Pubs Finished", "Research Assistant")
+            Call insert_into_eventlog("Aircraft Pubs Finished", "Research Assistant")
 
             Response.Write("<br/>Finished")
 
         Catch ex As Exception
-      'Response.Write(ex)
-    Finally
+            'Response.Write(ex)
+        Finally
 
-      MySqlConn_JETNET.Dispose()
-      MySqlConn_JETNET.Close()
-      MySqlConn_JETNET = Nothing
+            MySqlConn_JETNET.Dispose()
+            MySqlConn_JETNET.Close()
+            MySqlConn_JETNET = Nothing
 
-    End Try
-
-
-    ' string applicationDirectory = Path.GetDirectoryName(Application.ExecutablePath);
-    'string myFile = Path.Combine(applicationDirectory, "Sample.html");
-    'webMain.Url = new Uri("file:///" + myFile);
+        End Try
 
 
-  End Function
+        ' string applicationDirectory = Path.GetDirectoryName(Application.ExecutablePath);
+        'string myFile = Path.Combine(applicationDirectory, "Sample.html");
+        'webMain.Url = new Uri("file:///" + myFile);
+
+
+    End Function
+    Function scrape_controller_html_new()
+
+        Dim skip_this As String = "Y"
+        Dim skip_3_ina_row As Integer = 0
+
+        Try
+
+
+            MySqlConn_JETNET.ConnectionString = Inhouse_Live_Connection
+            'MySqlConn_JETNET.ConnectionString = Inhouse_Test_Connection
+            'MySqlConn_JETNET.ConnectionString = JETNET_LIVE_SQL_CONN
+            MySqlConn_JETNET.Open()
+            MySqlCommand_JETNET.Connection = MySqlConn_JETNET
+            MySqlCommand_JETNET.CommandType = CommandType.Text
+            MySqlCommand_JETNET.CommandTimeout = 60
+
+
+            ypl_start_date = Date.Now
+
+            Call Find_Naughty_Models()
+
+            Call insert_into_eventlog("Trade-A-Plane Started", "Research Assistant")
+
+            Try
+
+                Response.Write("<br/>Running Trade A Plane...")
+                System.Threading.Thread.Sleep(10)
+                Response.Flush()
+                Response.Flush()
+                System.Threading.Thread.Sleep(10)
+                'Call scrape_for_TradeAPlane(0)
+                'Call scrape_for_TradeAPlane(2)
+                ' 3 source 
+                Call scrape_for_Trade_A_Plane_Scraper(0)
+
+                'skip_this = "Y"
+                'If skip_this = "Y" Then
+                'Else
+            Catch ex As Exception
+
+            End Try
+
+
+            Call insert_into_eventlog("Controller Started", "Research Assistant")
+
+
+            Try
+                Call scrape_for_Controller_Scraper(0)
+            Catch ex As Exception
+
+            End Try
+
+
+            '    Call Insert_EMail_Queue_Record(yt_table)
+
+
+            ' Call insert_into_eventlog("Controller Finished", "Research Assistant")
+
+            Response.Write("<br/>Finished")
+
+        Catch ex As Exception
+            'Response.Write(ex)
+        Finally
+
+            MySqlConn_JETNET.Dispose()
+            MySqlConn_JETNET.Close()
+            MySqlConn_JETNET = Nothing
+
+        End Try
+
+
+        ' string applicationDirectory = Path.GetDirectoryName(Application.ExecutablePath);
+        'string myFile = Path.Combine(applicationDirectory, "Sample.html");
+        'webMain.Url = new Uri("file:///" + myFile);
+
+
+    End Function
     Function Scrape_Ebay_Page(ByVal link As String, ByVal id As Integer) As Long
         Scrape_Ebay_Page = 0
         Dim Str As System.IO.Stream
@@ -17689,10 +19038,10 @@ Partial Public Class _Default
     Dim Str As System.IO.Stream
     Dim srRead As System.IO.StreamReader
     Dim req As System.Net.HttpWebRequest = System.Net.HttpWebRequest.Create(link)
-    ' Dim req As System.Net.WebClient
-    '  req.Method = "PUT"
-    Dim resp As System.Net.HttpWebResponse = req.GetResponse
-    Dim string_text As String = ""
+        ' Dim req As System.Net.WebClient
+        '  req.Method = "PUT"
+        Dim resp As System.Net.HttpWebResponse = req.GetResponse
+        Dim string_text As String = ""
     Dim string_text2 As String = ""
     Dim spot_to_find As Integer = 0
     Dim spot_to_find2 As Integer = 0
@@ -17858,27 +19207,36 @@ Partial Public Class _Default
 
 
 
-        spot_to_find = InStr(string_text, "<a class=""no-underline"" href=""", CompareMethod.Text)
-        string_text = Right(string_text, Len(string_text) - spot_to_find - 29)
+                spot_to_find = InStr(string_text, "<a class=""no-underline"" href=""", CompareMethod.Text)
+                string_text = Right(string_text, Len(string_text) - spot_to_find - 29)
 
-        spot_to_find = InStr(string_text, ">", CompareMethod.Text)
-        pub_url = Left(string_text, spot_to_find - 2)
+                spot_to_find = InStr(string_text, ">", CompareMethod.Text)
+                pub_url = Left(string_text, spot_to_find - 2)
 
 
-        spot_to_find = InStr(string_text, "<h4 class=""font-semibold"">", CompareMethod.Text)
-        string_text = Right(string_text, Len(string_text) - spot_to_find - 25)
+                'spot_to_find = InStr(string_text, "<h4 class=""font-semibold"">", CompareMethod.Text)
+                'string_text = Right(string_text, Len(string_text) - spot_to_find - 25)
 
-        spot_to_find = InStr(string_text, "</h4>", CompareMethod.Text)
-        temp_ac_name = Left(string_text, spot_to_find - 1)
+                '        spot_to_find = InStr(string_text, "</h4>", CompareMethod.Text)
+
+
+
+
+                spot_to_find = InStr(string_text, "<h2 class=""font-semibold"">", CompareMethod.Text)
+                string_text = Right(string_text, Len(string_text) - spot_to_find - 25)
+
+                spot_to_find = InStr(string_text, "</h2>", CompareMethod.Text)
+
+                temp_ac_name = Left(string_text, spot_to_find - 1)
 
 
 
         Try
 
-          temp_year = Left(Trim(temp_ac_name), 4)
-          ' temp_ac_name = Replace(temp_ac_name, temp_year & " ", "")
+                    temp_year = Left(Trim(temp_ac_name), 4)
+                    ' temp_ac_name = Replace(temp_ac_name, temp_year & " ", "")
 
-          array_split2 = Split(Replace(temp_ac_name, temp_year & " ", ""), " ")
+                    array_split2 = Split(Replace(temp_ac_name, temp_year & " ", ""), " ")
 
           If array_split2.Length > 0 Then
             If array_split2.Length > 5 Then
