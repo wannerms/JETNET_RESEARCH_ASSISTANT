@@ -162,9 +162,11 @@ Partial Public Class _Default
 
     Const JETNET_LIVE_SQL_CONN As String = "Data Source=172.30.5.58;Initial Catalog=jetnet_ra;Persist Security Info=True;User ID=Evolution;Password=k7F522#e"
 
+    Const JETNET_LIVE_SQL_CONN_NOTES As String = "Data Source=172.30.5.58;Initial Catalog=jetnet_ra_cloud_notes;Persist Security Info=True;User ID=Evolution;Password=k7F522#e"
 
     Const Inhouse_Live_Connection As String = "Data Source=10.10.254.54;Initial Catalog=jetnet_ra;Persist Security Info=True;User ID=sa;Password=moejive"
     Const Inhouse_Test_Connection As String = "Data Source=10.10.254.56;Initial Catalog=jetnet_ra_test;Persist Security Info=True;User ID=sa;Password=moejive"
+
 
     '''''' results = results & get_yacht_news_super_yacht_times()
 
@@ -182,7 +184,9 @@ Partial Public Class _Default
 
             text_label.Text = ""
 
-
+            If Trim(Request("csv")) <> "" Then
+                run_excel_scraper_CSV()
+            End If
 
             If Trim(Request("ae")) <> "" Then
                 'Call Scrape_Aircraft_Exchange("https://aircraftexchange.com/jet-aircraft-for-sale/details/785/2013-dassault-falcon-900lx", 0)
@@ -447,6 +451,461 @@ Partial Public Class _Default
             MySqlConn_JETNET = Nothing
             MyAircraftReader_JETNET = Nothing
             MySqlCommand_JETNET = Nothing
+        End Try
+
+
+    End Sub
+
+    Public Sub run_excel_scraper_CSV()
+
+        Dim temp_directory As String = "C:\Users\Matt Wanner\Desktop\"
+        '   Dim temp_directory As String = "D:\jetnetassistant\DOC_REQUEST\"
+
+        '    Dim temp_file_name As String = "doc_index.html"
+        Dim temp_file_name As String = "Premier_CSV.xlsx"
+        '  Dim temp_file_name As String = "doc_index.csv"
+        Dim temp_line As Long = 0
+        Dim temp_String As String = ""
+
+        Dim temp_party As String = ""
+        Dim temp_party_All As String = ""
+        Dim temp_serial As String = ""
+        Dim last_serial As String = ""
+        Dim last_date As String = ""
+
+
+        Dim ac_id As Long = 0
+        Dim publist_research_note As String = ""
+        Dim Insert_Record As String = ""
+
+
+
+        Insert_Query_Start = " INSERT INTO cloud_notes_497277 "
+        Insert_Query_Start &= "  (cn_ac_id "
+        Insert_Query_Start &= " ,cn_comp_id "
+        Insert_Query_Start &= " ,cn_contact_id "
+            Insert_Query_Start &= " ,cn_notes "
+            Insert_Query_Start &= " ,cn_entry_date "
+            Insert_Query_Start &= " ,cn_action_date "
+            Insert_Query_Start &= " ,cn_user_comp_id "
+            Insert_Query_Start &= " ,cn_user_sub_id "
+            Insert_Query_Start &= " ,cn_user_login "
+            Insert_Query_Start &= " ,cn_user_email "
+            Insert_Query_Start &= " ,cn_user_name "
+            Insert_Query_Start &= " ,cn_user_contact_id "
+            Insert_Query_Start &= " ,cn_status "
+            Insert_Query_Start &= " ,cn_schedule_start_date "
+            Insert_Query_Start &= " ,cn_schedule_end_date "
+            Insert_Query_Start &= " ,cn_clipri_ID "
+            Insert_Query_Start &= " ,cn_amod_id "
+            Insert_Query_Start &= " ,cn_ym_model_id "
+            Insert_Query_Start &= " ,cn_yt_id) " 
+        Insert_Query_Start &= " VALUES( "
+
+
+
+        Try
+
+            MySqlConn_JETNET.ConnectionString = Inhouse_Live_Connection
+            '    MySqlConn_JETNET.ConnectionString = Inhouse_Test_Connection
+            ' MySqlConn_JETNET.ConnectionString = JETNET_LIVE_SQL_CONN
+            MySqlConn_JETNET.Open()
+            MySqlCommand_JETNET.Connection = MySqlConn_JETNET
+            MySqlCommand_JETNET.CommandType = CommandType.Text
+            MySqlCommand_JETNET.CommandTimeout = 60
+
+
+            MySqlConn_JETNET2.ConnectionString = JETNET_LIVE_SQL_CONN_NOTES
+            MySqlConn_JETNET2.Open()
+            MySqlCommand_JETNET2.Connection = MySqlConn_JETNET2
+            MySqlCommand_JETNET2.CommandType = CommandType.Text
+            MySqlCommand_JETNET2.CommandTimeout = 60
+
+
+        Catch ex As Exception
+
+        End Try
+
+        'Dim string_text As String = "" 
+        'Using sr As New StreamReader(temp_directory & temp_file_name)
+        '    '  Using sr As New StreamReader("C:\Controller\" & i & ".htm")
+        '    string_text = sr.ReadToEnd()
+
+        '    string_text = string_text
+        'End Using
+
+
+
+        xlApp = CType(CreateObject("Excel.Application"),
+                  Microsoft.Office.Interop.Excel.Application)
+        xlBook = CType(xlApp.Workbooks.Open(temp_directory & temp_file_name), Microsoft.Office.Interop.Excel.Workbook)
+
+        ' xlBook = CType(xlApp.Workbooks.Add,Microsoft.Office.Interop.Excel.Workbook)
+        xlSheet = CType(xlBook.Worksheets(1),
+            Microsoft.Office.Interop.Excel.Worksheet)
+
+
+
+        Try
+
+            Dim user_first_name As String = ""
+            Dim user_last_name As String = ""
+            Dim user_email As String = ""
+            Dim make_name As String = ""
+            Dim model_name As String = ""
+            Dim reg_no As String = ""
+            Dim ser_no As String = ""
+            Dim note_text As String = ""
+            Dim date_ent As String = ""
+            Dim contact_id As Long = 0
+            Dim Insert_Query_End As String = ""
+            Dim Insert_Query_Final As String = ""
+            Dim contact_login As String = ""
+            Dim sub_id As Long = 10019
+            Dim model_name_part2 As String = ""
+            Dim model_name_part3 As String = ""
+            Dim model_name_part4 As String = ""
+            Dim ser_pre As String = ""
+
+            Dim xRng As Microsoft.Office.Interop.Excel.Range
+            Dim val As Object
+
+            ' no line 0 , and line 1 is columns 
+            For temp_line = 6898 To 10000
+                'temp_String = xlSheet.Cells(temp_line, 1).value()
+                temp_String = temp_String
+
+
+                ' clear them all 
+                user_first_name = ""
+                user_last_name = ""
+                user_email = ""
+                make_name = ""
+                model_name = ""
+                reg_no = ""
+                ser_no = ""
+                note_text = ""
+                date_ent = ""
+                contact_id = 0
+                Insert_Query_Final = ""
+                Insert_Query_End = ""
+                model_name_part2 = ""
+                model_name_part3 = ""
+                model_name_part4 = ""
+                ser_pre = ""
+
+
+                ' COLUMN 2 - user first name 
+                xRng = CType(xlSheet.Cells(temp_line, 3), Microsoft.Office.Interop.Excel.Range)
+                val = xRng.Value()
+                If Not IsNothing(val) Then
+                    temp_String = val.ToString
+                Else
+                    temp_String = ""
+                End If
+                user_first_name = temp_String
+                user_first_name = Replace(user_first_name, "'", "''")
+
+
+
+                contact_id = 0
+                contact_login = ""
+
+                If user_first_name = "Chris" Then
+                    contact_id = 748125
+                    contact_login = "CBrenner"
+                ElseIf user_first_name = "John" Then
+                    contact_id = 748123
+                    contact_login = "JOdegard"
+                ElseIf user_first_name = "Jeremy" Then
+                    contact_id = 748126
+                    contact_login = "JBogle"
+                ElseIf user_first_name = "Jason" Then
+                    contact_id = 748419
+                    contact_login = "jcal"
+                ElseIf user_first_name = "Nate" Then
+                    contact_id = 748421
+                    user_first_name = "Nahtan"
+                    contact_login = "NTempleton"
+                ElseIf user_first_name = "Austin" Then
+                    contact_id = 748256
+                    contact_login = "AChi "
+                ElseIf user_first_name = "Seth" Then
+                    contact_id = 748124
+                    contact_login = "SZlotkin"
+                ElseIf user_first_name = "Katelynn" Then
+                    contact_id = 748420
+                    contact_login = "KThompson"
+                ElseIf user_first_name = "Scott" Then
+                    contact_id = 0
+                    contact_login = "smiller"
+                ElseIf user_first_name = "David" Then
+                    contact_id = 0
+                    contact_login = "drich"
+                ElseIf user_first_name = "Deron" Then
+                    contact_id = 0
+                    contact_login = "dbrown"
+                ElseIf user_first_name = "Yvette" Then
+                    contact_id = 0
+                    contact_login = "yclack"
+                Else
+                    contact_id = 0
+                    contact_login = ""
+                End If
+
+
+                ' SERIAL NUMBER
+                xRng = CType(xlSheet.Cells(temp_line, 4), Microsoft.Office.Interop.Excel.Range)
+                val = xRng.Value()
+                If Not IsNothing(val) Then
+                    temp_String = val.ToString
+                Else
+                    temp_String = ""
+                End If
+                user_last_name = temp_String
+                user_last_name = Replace(user_last_name, "'", "''")
+
+
+                xRng = CType(xlSheet.Cells(temp_line, 5), Microsoft.Office.Interop.Excel.Range)
+                val = xRng.Value()
+                If Not IsNothing(val) Then
+                    temp_String = val.ToString
+                Else
+                    temp_String = ""
+                End If
+                user_email = temp_String
+                user_email = Replace(user_email, "'", "''")
+
+
+                xRng = CType(xlSheet.Cells(temp_line, 6), Microsoft.Office.Interop.Excel.Range)
+                val = xRng.Value()
+                If Not IsNothing(val) Then
+                    temp_String = val.ToString
+                Else
+                    temp_String = ""
+                End If
+                make_name = temp_String
+                make_name = Replace(make_name, "'", "''")
+
+                xRng = CType(xlSheet.Cells(temp_line, 7), Microsoft.Office.Interop.Excel.Range)
+                val = xRng.Value()
+                If Not IsNothing(val) Then
+                    temp_String = val.ToString
+                Else
+                    temp_String = ""
+                End If
+                model_name = temp_String
+                model_name = Replace(model_name, "'", "''")
+
+                xRng = CType(xlSheet.Cells(temp_line, 8), Microsoft.Office.Interop.Excel.Range)
+                val = xRng.Value()
+                If Not IsNothing(val) Then
+                    temp_String = val.ToString
+                Else
+                    temp_String = ""
+                End If
+                ser_no = temp_String
+                ser_no = Replace(ser_no, "'", "''")
+
+                xRng = CType(xlSheet.Cells(temp_line, 9), Microsoft.Office.Interop.Excel.Range)
+                val = xRng.Value()
+                If Not IsNothing(val) Then
+                    temp_String = val.ToString
+                Else
+                    temp_String = ""
+                End If
+                reg_no = temp_String
+                reg_no = Replace(reg_no, "'", "''")
+
+
+                xRng = CType(xlSheet.Cells(temp_line, 10), Microsoft.Office.Interop.Excel.Range)
+                val = xRng.Value()
+                If Not IsNothing(val) Then
+                    temp_String = val.ToString
+                Else
+                    temp_String = ""
+                End If
+                note_text = temp_String
+                note_text = Replace(note_text, "'", "''")
+
+                xRng = CType(xlSheet.Cells(temp_line, 11), Microsoft.Office.Interop.Excel.Range)
+                val = xRng.Value()
+                If Not IsNothing(val) Then
+                    temp_String = val.ToString
+                Else
+                    temp_String = ""
+                End If
+                date_ent = temp_String
+                date_ent = Replace(date_ent, "'", "''")
+
+
+                temp_amod_id = 0
+                temp_ac_id = 0
+
+
+                If InStr(model_name, " ") > 0 Then
+                    model_name_part2 = Right(model_name, Len(model_name) - InStr(model_name, " "))
+                    model_name_part3 = Replace(model_name, model_name_part2, "")  ' whatevers left 
+                    If Len(Trim(model_name_part2)) > 3 Then
+                        model_name_part4 = Right(model_name_part2, 3)
+                    Else
+                        model_name_part4 = model_name_part2
+                    End If
+                Else
+                    model_name_part2 = model_name
+                    model_name_part3 = make_name
+                    model_name_part4 = model_name
+                End If
+
+                ' try a global search for search and make ... should work a lot ... of time .. if not .. down the line 
+                temp_ac_id = find_ac_global_search(ser_no, "", model_name_part2, "")
+
+
+                If temp_ac_id = 0 Then
+                    temp_ac_id = find_ac_ac_search(ser_no, make_name, model_name, reg_no, temp_amod_id)
+                End If
+                If temp_ac_id = 0 Then
+                    temp_ac_id = find_ac_ac_search(ser_no, "", model_name, reg_no, temp_amod_id)
+                End If
+
+                If temp_ac_id = 0 Then
+                    temp_ac_id = find_ac_ac_search(ser_no, "", "", reg_no, temp_amod_id)
+                End If
+
+                If temp_ac_id = 0 Then
+                    temp_ac_id = find_ac_ac_search("", "", "", reg_no, temp_amod_id)
+                End If
+
+                If temp_ac_id = 0 Then
+                    temp_ac_id = temp_ac_id
+
+                    If InStr(model_name, " ") > 0 Then
+                        temp_ac_id = find_ac_ac_search(ser_no, "", model_name_part2, reg_no, temp_amod_id)
+
+                        If temp_ac_id = 0 Then
+                            temp_ac_id = find_ac_ac_search("", "", model_name_part2, reg_no, temp_amod_id)
+                        End If
+
+                        If temp_ac_id = 0 Then
+                            temp_ac_id = find_ac_ac_search(ser_no, "", model_name_part2, "", temp_amod_id)
+                        End If
+
+                        If temp_ac_id = 0 Then   ' user part 3 as make 
+                            temp_ac_id = find_ac_ac_search(ser_no, Trim(model_name_part3), "", reg_no, temp_amod_id)
+
+                            If temp_ac_id = 0 Then
+                                temp_ac_id = find_ac_ac_search("", Trim(model_name_part3), "", reg_no, temp_amod_id)
+                            End If
+
+                            If temp_ac_id = 0 Then
+                                temp_ac_id = find_ac_ac_search(ser_no, Trim(model_name_part3), "", "", temp_amod_id)
+                            End If
+
+                            If temp_ac_id = 0 Then
+                                If temp_ac_id = 0 Then
+                                    temp_ac_id = find_ac_global_search(ser_no, "", model_name_part2, "")
+                                End If
+
+                                If temp_ac_id = 0 Then
+                                    temp_ac_id = find_ac_global_search("", "", "", reg_no)
+                                End If
+
+                                If temp_ac_id = 0 Then   ' part 4 should be the right 3 of the model name, incase there is more there
+                                    temp_ac_id = find_ac_global_search(ser_no, "", model_name_part4, "")
+                                End If
+
+                                If temp_ac_id = 0 Then
+
+                                    ser_no = Replace(ser_no, "RK-0", "RK-")
+                                    ser_no = Replace(ser_no, "FL-0", "FL-")
+                                    ser_no = Replace(ser_no, "RJ-00", "RJ-")
+
+
+                                    ser_pre = ""
+                                    If Trim(model_name) = "Citation X 750" Then
+                                        ser_pre = "750-"
+                                    ElseIf Trim(model_name) = "Citation CJ3 525B" Then
+                                        ser_pre = "525B-"
+                                    ElseIf Trim(model_name) = "Citation Sovereign 680" Then
+                                        ser_pre = "680-"
+                                    ElseIf Trim(model_name) = "Citation CJ4 525C" Then
+                                        ser_pre = "525C-"
+                                    End If
+
+                                    If Trim(ser_pre) <> "" Then
+                                        If Len(Trim(ser_no)) = 1 Then
+                                            ser_no = ser_pre & "000" & ser_no
+                                        ElseIf Len(Trim(ser_no)) = 2 Then
+                                            ser_no = ser_pre & "00" & ser_no
+                                        ElseIf Len(Trim(ser_no)) = 3 Then
+                                            ser_no = ser_pre & "0" & ser_no
+                                        ElseIf Len(Trim(ser_no)) = 4 Then
+                                            ser_no = ser_pre & "" & ser_no
+                                        End If
+                                    End If
+
+                                    If temp_ac_id = 0 Then   ' part 4 should be the right 3 of the model name, incase there is more there
+                                        temp_ac_id = find_ac_global_search(ser_no, "", "", "")
+                                    End If
+
+                                    If temp_ac_id = 0 Then   ' part 4 should be the right 3 of the model name, incase there is more there
+                                        temp_ac_id = find_ac_global_search(ser_no, "", model_name_part4, "")
+                                    End If
+
+                                    If temp_ac_id = 0 Then
+                                        temp_ac_id = temp_ac_id
+                                    End If
+                                End If
+                            End If
+                        End If
+                    End If
+
+
+                End If
+
+                Insert_Query_End = ""
+                Insert_Query_End &= "  " & temp_ac_id & ""  ' find 
+                Insert_Query_End &= " , 0 "   ' know 
+                Insert_Query_End &= " , 0 "   ' know 
+                Insert_Query_End &= " , '" & note_text & "'  "
+                Insert_Query_End &= " , '" & date_ent & "'  "
+                Insert_Query_End &= " , '" & Date.Now() & "' "
+                Insert_Query_End &= " , 497277  "
+                Insert_Query_End &= " , " & sub_id & " "
+                Insert_Query_End &= " , '" & contact_login & "'   "
+                Insert_Query_End &= " , '" & user_email & "'   "
+                Insert_Query_End &= " , '" & user_first_name & " " & user_last_name & "'   "
+                Insert_Query_End &= " , " & contact_id & "  "
+                Insert_Query_End &= " , 'A' "
+                Insert_Query_End &= " ,NULL  "
+                Insert_Query_End &= " , NULL  "
+                Insert_Query_End &= " , 1 "
+                Insert_Query_End &= " , " & temp_amod_id & " "
+                Insert_Query_End &= " ,0 "
+                Insert_Query_End &= " ,1) "
+
+                Insert_Query_Final = Insert_Query_Start & Insert_Query_End
+                Insert_Query_Final = Insert_Query_Final
+
+                MySqlCommand_JETNET2.CommandText = Insert_Query_Final
+                MySqlCommand_JETNET2.ExecuteNonQuery()
+                MySqlCommand_JETNET2.Dispose()
+
+
+            Next
+
+            temp_line = temp_line
+            temp_line = temp_line
+
+        Catch ex As Exception
+        Finally
+            MySqlConn_JETNET.Dispose()
+            MySqlConn_JETNET.Close()
+            MySqlConn_JETNET = Nothing
+
+            MySqlConn_JETNET2.Dispose()
+            MySqlConn_JETNET2.Close()
+            MySqlConn_JETNET2 = Nothing
         End Try
 
 
@@ -11824,7 +12283,7 @@ Partial Public Class _Default
     End Function
 
 
-    Public Function find_ac_global_search(ByVal ser_no As String, ByVal make As String, ByVal model1 As String, ByVal reg_no As String) As Long
+    Public Function find_ac_global_search(ByVal ser_no As String, ByVal make As String, ByVal model1 As String, ByVal reg_no As String, Optional ByVal amod_id As Long = 0) As Long
 
         find_ac_global_search = 0
 
@@ -11841,7 +12300,7 @@ Partial Public Class _Default
             make = Replace(make, "-", "")
             model1 = Replace(model1, "-", "")
 
-            select_query = " select fts_ac_id FROM Full_Text_Search WITH(NOLOCK)  "
+            select_query = " select fts_ac_id, fts_amod_id FROM Full_Text_Search WITH(NOLOCK)  "
             select_query &= " inner join Aircraft with (NOLOCK) on ac_id = fts_ac_id and ac_journ_id = 0 "
 
             If Trim(ser_no) <> "" Then
@@ -11908,6 +12367,10 @@ Partial Public Class _Default
 
                 If atemptable.Rows.Count = 1 Then
                     find_ac_global_search = atemptable(0).Item("fts_ac_id")
+
+                    If Not IsDBNull(atemptable(0).Item("fts_amod_id")) Then
+                        amod_id = atemptable(0).Item("fts_amod_id")
+                    End If
                 End If
                 atemptable.Clear()
             End If
@@ -11923,7 +12386,7 @@ Partial Public Class _Default
         End Try
     End Function
 
-    Public Function find_ac_ac_search(ByVal ser_no As String, ByVal make As String, ByVal model1 As String, ByVal reg_no As String) As Long
+    Public Function find_ac_ac_search(ByVal ser_no As String, ByVal make As String, ByVal model1 As String, ByVal reg_no As String, Optional ByRef amod_id_temp As Long = 0) As Long
 
         find_ac_ac_search = 0
 
@@ -11937,7 +12400,7 @@ Partial Public Class _Default
             ' only while we are in here - replace the - so it searches more correctly 
             orig_serno = ser_no
 
-            select_query = " select ac_id FROM aircraft WITH(NOLOCK)  "
+            select_query = " select ac_id, ac_amod_id FROM aircraft WITH(NOLOCK)  "
             select_query &= " inner Join aircraft_model with (NOLOCK) on ac_amod_id = amod_id "
             select_query &= " where ac_journ_id = 0 "
 
@@ -11974,6 +12437,9 @@ Partial Public Class _Default
 
             If atemptable.Rows.Count = 1 Then
                 find_ac_ac_search = atemptable(0).Item("ac_id")
+
+
+                amod_id_temp = atemptable(0).Item("ac_amod_id")
             End If
             atemptable.Clear()
 
