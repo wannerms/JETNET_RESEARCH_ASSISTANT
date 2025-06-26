@@ -11,7 +11,7 @@
     <OutputType>Library</OutputType>
     <RootNamespace>JETNET_RESEARCH_ASSISTANT</RootNamespace>
     <AssemblyName>JETNET_RESEARCH_ASSISTANT</AssemblyName>
-    <TargetFrameworkVersion>v4.6.2</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
     <OptionExplicit>On</OptionExplicit>
     <OptionCompare>Binary</OptionCompare>
     <OptionStrict>Off</OptionStrict>
