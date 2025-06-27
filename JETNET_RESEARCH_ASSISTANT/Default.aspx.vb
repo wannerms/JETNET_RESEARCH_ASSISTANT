@@ -5438,12 +5438,12 @@ Partial Public Class _Default
 
 
     End Function
-    Public Sub cutme(ByRef temp_val As String)
+    Public Sub cutme(ByRef temp_val As String, Optional ByVal kill_spaces As Boolean = False)
 
         If Trim(temp_val) <> "" Then
             For i = 0 To 100
                 If Trim(temp_val) <> "" Then
-                    If Asc(Left(Trim(temp_val), 1)) <32 Or Asc(Left(Trim(temp_val), 1)) > 255 Then
+                    If Asc(Left(Trim(temp_val), 1)) < 32 Or Asc(Left(Trim(temp_val), 1)) > 255 Then
                         temp_val = Right(Trim(temp_val), Len(Trim(temp_val)) - 1)
                     Else
                         i = 100
@@ -5454,13 +5454,24 @@ Partial Public Class _Default
 
             For i = 0 To 100
                 If Trim(temp_val) <> "" Then
-                    If Asc(Right(Trim(temp_val), 1)) <32 Or Asc(Right(Trim(temp_val), 1)) > 255 Then
+                    If Asc(Right(Trim(temp_val), 1)) < 32 Or Asc(Right(Trim(temp_val), 1)) > 255 Then
                         temp_val = Left(Trim(temp_val), Len(Trim(temp_val)) - 1)
                     Else
                         i = 100
                     End If
                 End If
             Next
+        End If
+
+        If kill_spaces = True Then
+            If Trim(temp_val) <> "" Then
+                For i = 0 To 10
+                    If Left(Trim(temp_val), 1) = " " Then
+                        temp_val = Right(Trim(temp_val), Len(Trim(temp_val)) - 1)
+                    End If
+                Next
+            End If
+            temp_val = RTrim(LTrim(Trim(temp_val)))
         End If
 
 
@@ -12038,6 +12049,11 @@ Partial Public Class _Default
 
                         If Not IsDBNull(r.Item("scrp_ac_model")) Then
                             temp_ac_name = Trim(r.Item("scrp_ac_model"))
+                            temp_ac_name = Replace(temp_ac_name, Chr(9), "")
+                            temp_ac_name = Replace(temp_ac_name, vbTab, "")
+                            temp_ac_name = Replace(temp_ac_name, vbLf, "")
+                            temp_ac_name = Replace(temp_ac_name, Chr(10), "")
+                            temp_ac_name = Replace(temp_ac_name, "0 - ", "")
                         End If
 
                         If Not IsDBNull(r.Item("scrp_ac_asking_price")) Then
@@ -12118,8 +12134,12 @@ Partial Public Class _Default
                         cutme(pub_seller_info)
                         cutme(pub_desc)
                         cutme(temp_year)
-                        cutme(pub_ser_no)
-                        cutme(pub_aftt)
+
+                        cutme(acpub_original_name, True)
+                        cutme(temp_ac_name, True)
+                        cutme(pub_aftt, True)
+                        cutme(pub_ser_no, True)
+                        cutme(pub_reg_no, True)
 
                         pub_aftt = Replace(pub_aftt, "Hours", "")
 
